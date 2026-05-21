@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio — Alex Rizky</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div id="cur"></div>
+  <div id="cur-ring"></div>
+
+  <div id="progress">
+    <div class="dot active" data-i="0"></div>
+    <div class="dot"        data-i="1"></div>
+    <div class="dot"        data-i="2"></div>
+  </div>
+  <div id="scroll-line" style="width:0%"></div>
+
+  <div id="stage">
+    <!-- PAGE 1 -->
+    <div class="page is-current" id="p1"></div>
+
+    <!-- PAGE 2 -->
+    <div class="page hidden" id="p2"></div>
+
+    <!-- PAGE 3 -->
+    <div class="page hidden" id="p3"></div>
+  </div>
+
+  <!-- Drag zones -->
+  <div class="drag-zone left" id="dz-left">
+    <div class="arrow-pill" id="ap-left">
+      <svg viewBox="0 0 16 16" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="10 4 6 8 10 12"/></svg>
+    </div>
+  </div>
+  <div class="drag-zone right" id="dz-right">
+    <div class="arrow-pill" id="ap-right">
+      <svg viewBox="0 0 16 16" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 4 10 8 6 12"/></svg>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

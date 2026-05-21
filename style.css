@@ -1,0 +1,411 @@
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --c1: #000000;
+  --c2: #1a1a1a;
+  --c3: #ffffff;
+  --accent: #ff006e;
+  --white: #ffffff;
+  --dur: 0.78s;
+  --ease: cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  font-family: 'DM Sans', sans-serif;
+  background: #0a0a0a;
+  cursor: none;
+}
+
+/* ——— CURSOR ——— */
+#cur { position:fixed; width:9px; height:9px; background:#fff; border-radius:50%; pointer-events:none; z-index:9999; transform:translate(-50%,-50%); transition:transform .12s; }
+#cur-ring { position:fixed; width:36px; height:36px; border:1px solid rgba(255,255,255,.3); border-radius:50%; pointer-events:none; z-index:9998; transform:translate(-50%,-50%); transition:width .18s,height .18s,border-color .18s; }
+#cur-ring.big { width:54px; height:54px; border-color:rgba(255,255,255,.65); }
+#cur.small { transform:translate(-50%,-50%) scale(.4); }
+
+/* ——— STAGE ——— */
+#stage {
+  position:fixed; inset:0;
+  overflow:hidden;
+}
+
+/* ——— PAGES ——— */
+.page {
+  position:absolute; inset:0;
+  overflow:hidden;
+  will-change:transform,opacity;
+  /* All start stacked */
+}
+
+/* Base colors - Neo-Brutalism */
+#p1 { background: #000000; border-right: 6px solid var(--accent); }
+#p2 { background: #1a1a1a; border-left: 8px solid var(--accent); }
+#p3 { background: #ffffff; border-top: 8px solid var(--accent); }
+
+/* Ambient overlays */
+#p1::after { content:''; position:absolute; inset:0; pointer-events:none; background: linear-gradient(135deg, rgba(255,0,110,.05) 0%, transparent 50%); }
+#p2::after { content:''; position:absolute; inset:0; pointer-events:none; background: linear-gradient(45deg, rgba(255,0,110,.03) 0%, transparent 50%); }
+#p3::after { content:''; position:absolute; inset:0; pointer-events:none; background: linear-gradient(-45deg, rgba(0,0,0,.02) 0%, transparent 50%); }
+
+/* ——— STATES ——— */
+
+/* Current — fully visible, centered */
+.page.is-current {
+  z-index: 10;
+  transform: translateX(0) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Incoming from right — starts pushed right + slightly small, slides in */
+.page.enter-from-right {
+  z-index: 12;
+  transform: translateX(100%) scale(0.96);
+  opacity: 1;
+  pointer-events: none;
+}
+.page.enter-from-right.animating {
+  transition: transform var(--dur) var(--ease), opacity var(--dur) var(--ease);
+  transform: translateX(0) scale(1);
+}
+
+/* Incoming from left */
+.page.enter-from-left {
+  z-index: 12;
+  transform: translateX(-100%) scale(0.96);
+  opacity: 1;
+  pointer-events: none;
+}
+.page.enter-from-left.animating {
+  transition: transform var(--dur) var(--ease), opacity var(--dur) var(--ease);
+  transform: translateX(0) scale(1);
+}
+
+/* Outgoing — shrinks + fades slightly to give depth illusion */
+.page.exit-to-back {
+  z-index: 8;
+  transform: translateX(0) scale(1);
+  opacity: 1;
+  pointer-events: none;
+}
+.page.exit-to-back.animating {
+  transition: transform var(--dur) var(--ease), opacity var(--dur) var(--ease);
+  transform: translateX(0) scale(0.94);
+  opacity: 0.55;
+}
+
+/* Hidden (not current, not animating) */
+.page.hidden {
+  z-index: 1;
+  transform: translateX(0) scale(0.94);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ——— DRAG LIVE PREVIEW ——— */
+/* Applied inline via JS during drag */
+
+/* ——— DIMMER on exiting page ——— */
+.page-dimmer {
+  position:absolute; inset:0; z-index:20; pointer-events:none;
+  background:rgba(0,0,0,0);
+  transition:background var(--dur) var(--ease);
+}
+.page.exit-to-back.animating .page-dimmer {
+  background:rgba(0,0,0,.28);
+}
+
+/* ——— EDGE SHINE on incoming page ——— */
+.page-shine {
+  position:absolute; inset:0; z-index:19; pointer-events:none;
+  opacity:0;
+  background:linear-gradient(to right, rgba(255,255,255,.06) 0%, rgba(255,255,255,0) 40%);
+  transition:opacity .3s;
+}
+.page.enter-from-right.animating .page-shine,
+.page.enter-from-left.animating .page-shine {
+  opacity:1;
+}
+
+/* ——— PAGE CONTENT ——— */
+.page-content {
+  position:absolute; inset:0;
+  display:flex; flex-direction:column;
+  justify-content:center; align-items:flex-start;
+  padding:clamp(2rem,6vw,6rem);
+}
+
+/* ——— TYPOGRAPHY (Neo-Brutalism) ——— */
+.eyebrow { 
+  font-size:clamp(9px,1vw,12px); 
+  font-weight:900; 
+  letter-spacing:.35em; 
+  text-transform:uppercase; 
+  margin-bottom:1.5rem; 
+  opacity:.7; 
+  font-family:'Courier New', monospace;
+}
+h1 { 
+  font-family:'Arial', 'Helvetica', sans-serif; 
+  font-size:clamp(4rem,12vw,10rem); 
+  font-weight:900; 
+  line-height:.95; 
+  letter-spacing:-.02em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-decoration-thickness: 4px;
+  text-underline-offset: 0.15em;
+}
+h2 { 
+  font-family:'Arial', 'Helvetica', sans-serif; 
+  font-size:clamp(2.5rem,8vw,6.5rem); 
+  font-weight:900; 
+  line-height:.95; 
+  letter-spacing:-.01em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 0.1em;
+}
+.tagline { 
+  font-size:clamp(.95rem,1.8vw,1.3rem); 
+  font-weight:400; 
+  line-height:1.6; 
+  max-width:550px; 
+  margin-top:1.6rem; 
+  opacity:.8;
+  border-left: 4px solid var(--accent);
+  padding-left: 1.2rem;
+}
+
+#p1 .eyebrow,#p1 h1,#p1 .tagline { color:#fff; }
+#p2 .eyebrow,#p2 h2,#p2 .tagline { color:#fff; }
+#p3 .eyebrow { color:#000; } #p3 h2 { color:#000; } #p3 .tagline { color:#000; border-left-color: #000; }
+
+.hero-row { display:flex; align-items:flex-start; gap:clamp(2.5rem,6vw,6rem); width:100%; flex-wrap:wrap; }
+.hero-text { flex:1; min-width:250px; }
+
+.avatar-ring {
+  width:clamp(140px,22vw,260px); height:clamp(140px,22vw,260px);
+  border-radius:0%;
+  border:5px solid #fff; 
+  overflow:hidden; 
+  flex-shrink:0;
+  display:flex; 
+  align-items:center; 
+  justify-content:center;
+  font-family:'Arial', sans-serif; 
+  font-size:clamp(3rem,6vw,6rem);
+  font-weight:900; 
+  color:#000; 
+  background:#fff;
+  position: relative;
+  transform: rotate(0deg);
+}
+.avatar-ring::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border: 3px solid #000;
+  z-index: -1;
+}
+
+.stats-row { display:flex; gap:2rem; margin-top:2.2rem; flex-wrap:wrap; }
+.stat-num { font-family:'Syne',sans-serif; font-size:clamp(1.4rem,2.8vw,2.3rem); font-weight:700; display:block; color:var(--white); }
+.stat-label { font-size:11px; letter-spacing:.1em; text-transform:uppercase; opacity:.4; color:var(--white); }
+
+.tag-cloud { display:flex; flex-wrap:wrap; gap:12px; margin-top:1.8rem; }
+.tag { 
+  padding:10px 18px; 
+  border-radius:0px; 
+  font-size:11px; 
+  font-weight:900; 
+  background:#000; 
+  color:#fff; 
+  border:2px solid #fff;
+  transition:all .2s;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+#p2 .tag { background:#fff; color:#000; border-color:#000; }
+.tag:hover { transform:scale(1.05); background:var(--accent); color:#fff; border-color:var(--accent); }
+
+.project-card { 
+  background:transparent; 
+  border-radius:0px; 
+  padding:1.4rem 1.2rem; 
+  border:3px solid #fff;
+  margin-bottom:16px; 
+  transition:all .25s; 
+  position: relative;
+}
+#p2 .project-card { border-color: #fff; }
+.project-card:hover { 
+  background:#fff; 
+  transform:translateY(-4px);
+  box-shadow: 8px 8px 0px rgba(255,0,110,.3);
+}
+.project-card:hover .project-name,
+.project-card:hover .project-desc,
+.project-card:hover .project-year { color:#000; }
+.project-year { font-size:9px; letter-spacing:.2em; opacity:.5; text-transform:uppercase; color:#fff; margin-bottom:8px; font-weight:900; }
+.project-name { font-family:'Arial', sans-serif; font-size:1.1rem; font-weight:900; color:#fff; text-transform: uppercase; }
+.project-desc { font-size:12px; opacity:.65; color:#fff; margin-top:6px; line-height: 1.5; }
+
+.p2-grid { display:grid; grid-template-columns:1fr 1fr; gap:2.5rem; width:100%; }
+@media(max-width:720px){ .p2-grid{ grid-template-columns:1fr; gap:1.5rem; } h1{ font-size:3rem; } h2{ font-size:2.2rem; } }
+
+.hobby-list { list-style:none; margin-top:1.6rem; }
+.hobby-list li { 
+  padding:12px 0; 
+  border-bottom:2px solid rgba(255,255,255,.2); 
+  font-size:13px; 
+  color:rgba(255,255,255,.8); 
+  display:flex; 
+  align-items:center; 
+  gap:12px;
+  font-weight: 500;
+}
+.hobby-list li:last-child { border-bottom:none; }
+#p2 .hobby-list li { border-bottom-color: rgba(255,255,255,.15); }
+
+.contact-big { 
+  font-family:'Arial', sans-serif; 
+  font-size:clamp(1.8rem,5vw,4rem); 
+  font-weight:900; 
+  color:#000; 
+  line-height:1.05; 
+  margin-bottom:2rem;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-decoration-thickness: 3px;
+}
+.contact-grid { 
+  display:grid; 
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); 
+  gap:16px; 
+  width:100%; 
+  max-width:700px; 
+  margin-top:2.2rem; 
+}
+.contact-item { 
+  background:transparent; 
+  border-radius:0px; 
+  padding:1.2rem 1.4rem; 
+  border:3px solid #000;
+  text-decoration:none; 
+  transition:all .25s;
+  position: relative;
+}
+.contact-item:hover { 
+  background:#000; 
+  transform:translateY(-4px);
+  box-shadow: 6px 6px 0px rgba(0,0,0,.2);
+}
+.contact-item:hover .ci-label,
+.contact-item:hover .ci-val { color:#fff; }
+.ci-label { 
+  font-size:9px; 
+  letter-spacing:.2em; 
+  opacity:.6; 
+  text-transform:uppercase; 
+  color:#000;
+  font-weight: 900;
+}
+.ci-val { 
+  font-family:'Arial', sans-serif; 
+  font-size:1rem; 
+  font-weight:900; 
+  color:#000; 
+  margin-top:6px;
+  text-transform: uppercase;
+}
+
+.avail-badge { 
+  display:inline-flex; 
+  align-items:center; 
+  gap:10px; 
+  background:#000; 
+  border-radius:0px; 
+  padding:12px 20px; 
+  font-size:11px; 
+  font-weight:900; 
+  color:#fff; 
+  margin-bottom:1.8rem;
+  border: 2px solid #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+#p3 .avail-badge { background:#fff; color:#000; border-color: #000; }
+.avail-dot { 
+  width:8px; 
+  height:8px; 
+  border-radius:0%; 
+  background:var(--accent); 
+  animation:pulse 2s infinite; 
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.45;transform:scale(1.4);} }
+
+.page-num { 
+  position:absolute; 
+  bottom:2rem; 
+  right:2.5rem; 
+  font-family:'Arial', sans-serif; 
+  font-size:clamp(4rem,11vw,9rem); 
+  font-weight:900; 
+  opacity:.08; 
+  line-height:1; 
+  pointer-events:none; 
+  user-select:none;
+}
+#p1 .page-num,#p2 .page-num { color:#fff; }
+#p3 .page-num { color:#000; }
+.corner-tag { 
+  position:absolute; 
+  top:2rem; 
+  right:2.5rem; 
+  font-size:10px; 
+  letter-spacing:.25em; 
+  text-transform:uppercase; 
+  opacity:.5;
+  font-weight: 900;
+  font-family: 'Courier New', monospace;
+}
+#p1 .corner-tag,#p2 .corner-tag { color:#fff; }
+#p3 .corner-tag { color:#000; }
+
+.reveal { opacity:0; transform:translateY(18px); transition:opacity .55s,transform .55s; }
+.reveal.shown { opacity:1; transform:translateY(0); }
+
+/* ——— PROGRESS (Neo-Brutalism) ——— */
+#progress { position:fixed; right:20px; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:12px; z-index:500; }
+.dot { width:8px; height:8px; border-radius:0px; background:rgba(255,255,255,.3); cursor:pointer; transition:height .4s cubic-bezier(.34,1.56,.64,1),background .3s; border: 2px solid #fff; }
+.dot.active { height:28px; background:var(--accent); border-color: var(--accent); }
+#scroll-line { position:fixed; left:0; top:0; height:3px; background:var(--accent); z-index:500; transition:width .6s var(--ease); }
+
+/* ——— DRAG ZONES (Neo-Brutalism) ——— */
+.drag-zone { position:fixed; top:0; bottom:0; width:60px; display:flex; align-items:center; justify-content:center; z-index:400; transition:opacity .3s; }
+.drag-zone.left { left:0; } .drag-zone.right { right:0; }
+.arrow-pill { 
+  width:44px; 
+  height:70px; 
+  border-radius:0px; 
+  background:rgba(0,0,0,.15); 
+  border:2px solid #fff;
+  display:flex; 
+  align-items:center; 
+  justify-content:center; 
+  opacity:.6; 
+  transition:all .25s; 
+  backdrop-filter:blur(8px); 
+  user-select:none;
+}
+#p3 .arrow-pill { background:rgba(0,0,0,.15); border-color: #000; }
+.drag-zone:hover .arrow-pill { opacity:1; transform:scale(1.1); background:var(--accent); border-color: var(--accent); }
+.arrow-pill svg { width:18px; height:18px; stroke-width: 3; }
+
+/* Mobile swipe hint */
+.swipe-hint { position:absolute; bottom:2rem; left:50%; transform:translateX(-50%); font-size:10px; letter-spacing:.18em; text-transform:uppercase; opacity:.25; display:none; }
+@media(max-width:600px){ .swipe-hint{display:block;} }
+#p1 .swipe-hint,#p2 .swipe-hint{color:#fff;} #p3 .swipe-hint{color:#000;}
