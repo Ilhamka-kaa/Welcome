@@ -649,12 +649,97 @@ async function loadAllPages() {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// GAME MODAL HANDLER
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Setup game card listeners
+ */
+function setupGameCardListeners() {
+  // Wait for page2 content to be loaded, then setup game cards
+  setTimeout(() => {
+    const gameCards = document.querySelectorAll('.game-card');
+    gameCards.forEach(card => {
+      card.addEventListener('click', () => {
+        const gameFile = card.getAttribute('data-game');
+        const gameTitle = card.querySelector('.game-title').textContent;
+        openGameModal(gameFile, gameTitle);
+      });
+    });
+  }, 100);
+}
+
+/**
+ * Open game modal with fullscreen game
+ */
+function openGameModal(gameFile, gameTitle) {
+  const modal = document.getElementById('gameModal');
+  const modalContent = document.getElementById('gameModalContent');
+  const modalTitle = document.getElementById('gameModalTitle');
+  
+  // Update title
+  modalTitle.textContent = gameTitle;
+  
+  // Clear previous content
+  modalContent.innerHTML = '';
+  
+  // Create iframe for the game
+  const iframe = document.createElement('iframe');
+  iframe.className = 'game-modal-frame';
+  iframe.src = `game/${gameFile}`;
+  iframe.allow = 'fullscreen; accelerometer; gyroscope';
+  
+  modalContent.appendChild(iframe);
+  
+  // Show modal
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+/**
+ * Close game modal
+ */
+function closeGameModal() {
+  const modal = document.getElementById('gameModal');
+  modal.classList.remove('active');
+  document.getElementById('gameModalContent').innerHTML = '';
+  document.body.style.overflow = '';
+}
+
+/**
+ * Setup game modal event listeners
+ */
+function setupGameModalListeners() {
+  const closeBtn = document.getElementById('gameModalClose');
+  const modal = document.getElementById('gameModal');
+  
+  // Close button
+  closeBtn.addEventListener('click', closeGameModal);
+  
+  // Close on ESC key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('active')) {
+      closeGameModal();
+    }
+  });
+  
+  // Close on modal background click (optional - only if clicking outside content)
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      closeGameModal();
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
 // BOOTSTRAP
 // ═══════════════════════════════════════════════════════════════
 
 async function initialize() {
   await loadAllPages();
   initializeEventListeners();
+  setupGameModalListeners();
+  setupGameCardListeners();
   updateUI();
   setTimeout(() => revealPage(0), 100);
 }

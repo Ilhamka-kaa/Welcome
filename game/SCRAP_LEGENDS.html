@@ -1,0 +1,1767 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"/>
+<title>SCRAP LEGENDS — Neo-Brutalist Card Battle</title>
+<style>
+/* ================================================================
+   SCRAP LEGENDS — CSS FULL
+   Neo-Brutalism: heavy borders, hard shadows, industrial typography
+================================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blk:#0a0a0a;--blk2:#111;--blk3:#1a1a1a;--blk4:#222;
+  --yel:#ffd600;--yel2:#ffeb3b;--red:#f44336;--red2:#b71c1c;
+  --grn:#00e676;--blu:#2979ff;--pur:#d500f9;--ora:#ff6d00;
+  --con:#555;--con2:#888;--wht:#f0f0f0;
+  --bdr:5px solid var(--yel);
+  --sh: 6px 6px 0 var(--yel);
+  --sh-r:6px 6px 0 var(--red);
+  --sh-sm:3px 3px 0 var(--yel);
+}
+html{font-size:16px}
+body{
+  background:var(--blk);
+  background-image:
+    linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px),
+    linear-gradient(rgba(255,255,255,.012) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.012) 1px,transparent 1px);
+  background-size:64px 64px,64px 64px,16px 16px,16px 16px;
+  font-family:'Impact','Arial Black',sans-serif;
+  color:var(--wht);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── Scrollbar ─────────────── */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--blk)}
+::-webkit-scrollbar-thumb{background:var(--yel)}
+
+/* ── Screens ───────────────── */
+.screen{display:none;width:100%;min-height:100vh;padding:12px 10px 80px}
+.screen.active{display:block}
+
+/* ── NAV BAR ───────────────── */
+#navbar{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--blk2);border-top:4px solid var(--yel);
+  display:flex;z-index:200;
+}
+.nav-btn{
+  flex:1;padding:10px 0 12px;
+  background:transparent;border:none;border-right:3px solid var(--con);
+  color:var(--con2);font-family:inherit;font-size:.58rem;
+  letter-spacing:.2em;text-transform:uppercase;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  transition:color .12s,background .12s;
+}
+.nav-btn:last-child{border-right:none}
+.nav-btn .ico{font-size:1.35rem;line-height:1}
+.nav-btn.active,.nav-btn:hover{color:var(--yel);background:rgba(255,214,0,.07)}
+.nav-btn.active{border-bottom:3px solid var(--yel)}
+
+/* ── GLOBAL TITLE ──────────── */
+.page-title{
+  font-size:clamp(1.6rem,5vw,2.8rem);
+  color:var(--yel);letter-spacing:.14em;text-transform:uppercase;
+  text-shadow:4px 4px 0 var(--red);transform:skewX(-2deg);
+  display:inline-block;margin-bottom:14px;
+}
+.page-sub{
+  font-size:.65rem;letter-spacing:.3em;color:var(--con);
+  text-transform:uppercase;margin-bottom:18px;
+}
+
+/* ── BUTTONS ───────────────── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  background:var(--yel);color:var(--blk);
+  border:4px solid var(--blk);padding:10px 22px;
+  font-family:inherit;font-size:clamp(.85rem,3vw,1.1rem);
+  letter-spacing:.16em;text-transform:uppercase;cursor:pointer;
+  box-shadow:var(--sh);transform:skewX(-3deg);
+  transition:transform .07s,box-shadow .07s;
+  user-select:none;-webkit-tap-highlight-color:transparent;
+  white-space:nowrap;
+}
+.btn:active{transform:skewX(-3deg) translate(6px,6px);box-shadow:0 0 0 var(--yel)}
+.btn.red{background:var(--red);box-shadow:var(--sh-r)}
+.btn.red:active{box-shadow:0 0 0 var(--red)}
+.btn.ghost{background:transparent;color:var(--yel);border-color:var(--yel)}
+.btn:disabled{opacity:.4;pointer-events:none;filter:grayscale(100%);}
+.btn.big{font-size:clamp(1rem,4vw,1.5rem);padding:14px 28px;box-shadow:8px 8px 0 var(--yel)}
+.btn.big:active{transform:skewX(-3deg) translate(8px,8px);box-shadow:0 0 0 var(--yel)}
+
+/* ── CURRENCY BAR ──────────── */
+#currency-bar{
+  display:flex;align-items:center;gap:10px;
+  background:var(--blk3);border:3px solid var(--yel);
+  padding:6px 14px;margin-bottom:16px;
+  box-shadow:var(--sh-sm);transform:skewX(-2deg);
+  width:fit-content;
+}
+#currency-bar .ico{font-size:1.2rem}
+#currency-bar .amount{font-size:1.1rem;color:var(--yel);letter-spacing:.1em}
+#currency-bar .label{font-size:.55rem;color:var(--con);letter-spacing:.2em}
+
+/* ── CARD ──────────────────── */
+.card{
+  background:var(--blk3);
+  border:4px solid var(--con);
+  position:relative;overflow:hidden;
+  display:flex;flex-direction:column;
+  cursor:pointer;transition:transform .1s,box-shadow .1s;
+  user-select:none;
+}
+.card:hover{transform:translateY(-3px);box-shadow:0 6px 0 rgba(0,0,0,.5)}
+.card-art{
+  width:100%;aspect-ratio:1/1;
+  display:flex;align-items:center;justify-content:center;
+  font-size:3.2rem;background:var(--blk4);
+  position:relative;overflow:hidden;
+}
+.card-art::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.07) 0%,transparent 60%);
+}
+.card-name{
+  font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--wht);padding:4px 6px 2px;text-align:center;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.card-stats{
+  display:flex;justify-content:space-between;
+  padding:3px 6px 4px;font-size:.62rem;color:var(--con2);letter-spacing:.1em;
+}
+.card-hp{color:var(--grn)}
+.card-atk{color:var(--red)}
+.card-type-badge{
+  position:absolute;top:4px;left:4px;
+  font-size:.5rem;letter-spacing:.15em;padding:2px 5px;
+  background:var(--blk);border:2px solid currentColor;
+  text-transform:uppercase;font-family:inherit;font-weight:900;
+}
+
+/* Rarity borders */
+.card.common{border-color:#888;box-shadow:3px 3px 0 #444}
+.card.rare{border-color:var(--blu);box-shadow:4px 4px 0 var(--blu)}
+.card.epic{border-color:var(--pur);box-shadow:4px 4px 0 var(--pur)}
+.card.legendary{
+  border-color:var(--yel);box-shadow:4px 4px 0 var(--yel);
+}
+
+/* Locked Card Style (Belum Punya) */
+.card.locked {
+  filter: grayscale(100%) brightness(0.6);
+  border-color: var(--blk4);
+  box-shadow: none;
+}
+.card.locked:hover { transform: none; box-shadow: none; cursor: default; }
+
+@keyframes legendaryGlow{
+  from{box-shadow:4px 4px 0 var(--yel),0 0 12px rgba(255,214,0,.3)}
+  to{box-shadow:4px 4px 0 var(--yel),0 0 24px rgba(255,214,0,.6)}
+}
+.rarity-label{
+  position:absolute;top:4px;right:4px;
+  font-size:.48rem;letter-spacing:.2em;padding:2px 5px;
+  font-family:inherit;font-weight:900;text-transform:uppercase;
+}
+.rarity-label.common{background:#555;color:#ddd}
+.rarity-label.rare{background:var(--blu);color:#fff}
+.rarity-label.epic{background:var(--pur);color:#fff}
+.rarity-label.legendary{background:var(--yel);color:var(--blk)}
+
+/* ── SCREEN: HOME ──────────── */
+#screen-home{text-align:center;padding-top:30px}
+#home-logo{
+  font-size:clamp(2.8rem,10vw,6rem);
+  color:var(--yel);letter-spacing:.1em;text-transform:uppercase;
+  text-shadow:6px 6px 0 var(--red),12px 12px 0 #000;
+  transform:skewX(-3deg);display:inline-block;
+  line-height:1;margin-bottom:6px;
+}
+#home-sub{
+  font-size:clamp(.6rem,2vw,.85rem);color:var(--con);
+  letter-spacing:.4em;text-transform:uppercase;margin-bottom:24px;
+}
+#home-currency{margin:0 auto 24px;justify-content:center;display:flex}
+.home-btn-grid{display:flex;flex-direction:column;gap:12px;align-items:center;margin-bottom:28px}
+.home-btn-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.stats-bar{
+  display:flex;gap:10px;flex-wrap:wrap;justify-content:center;
+  margin:0 auto;max-width:500px;
+}
+.stat-pill{
+  background:var(--blk3);border:3px solid var(--con);
+  padding:6px 14px;transform:skewX(-3deg);
+  font-size:.65rem;letter-spacing:.2em;color:var(--con2);
+}
+.stat-pill b{color:var(--yel);font-size:.85rem}
+
+/* ── SCREEN: GACHA ─────────── */
+#gacha-area{
+  background:var(--blk3);border:5px solid var(--yel);
+  padding:20px;margin-bottom:20px;
+  box-shadow:var(--sh);
+}
+
+/* Static Booster Pack UI for Gacha Menu */
+.gacha-machine{
+  width:100%; max-width:340px; margin:0 auto 20px;
+  height: 250px; background: transparent; border: none;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.booster-pack-idle {
+  width: 140px; height: 210px;
+  background: linear-gradient(135deg, var(--yel) 0%, #ff9800 100%);
+  border: 6px solid var(--blk);
+  box-shadow: 10px 10px 0 var(--red);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  transition: transform 0.1s;
+}
+.gacha-animating .booster-pack-idle {
+  animation: packShakeAnim 0.15s infinite;
+}
+
+.gacha-btn-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:12px}
+.pity-bar-wrap{margin-bottom:8px;text-align:center}
+.pity-bar-label{font-size:.55rem;letter-spacing:.2em;color:var(--con);text-transform:uppercase;margin-bottom:4px}
+.pity-bar-track{
+  height:8px;background:var(--blk4);border:2px solid var(--con);
+  position:relative;overflow:hidden;
+}
+.pity-bar-fill{height:100%;background:var(--yel);transition:width .3s}
+
+/* ============================================================
+   GACHA TCG PACK OPENING & FLIP ANIMATION
+============================================================ */
+#gacha-reveal-overlay {
+  position: fixed; inset: 0; background: rgba(10,10,10,0.95);
+  z-index: 10000; display: flex; align-items: center; justify-content: center;
+  flex-direction: column; overflow-x: hidden; padding: 20px;
+  transition: opacity 0.3s;
+}
+#gacha-reveal-overlay.hidden { display: none; opacity: 0; }
+
+/* The Pack Container */
+#booster-pack-container {
+  position: absolute;
+  width: 220px; height: 340px;
+  z-index: 10001;
+  display: flex; flex-direction: column;
+}
+
+/* Halves of the pack */
+.booster-half {
+  width: 100%;
+  background: linear-gradient(135deg, var(--yel) 0%, #ff9800 100%);
+  border: 6px solid var(--blk);
+  box-shadow: 12px 12px 0 var(--red);
+  display: flex; align-items: center; justify-content: center;
+  position: absolute; left: 0;
+  overflow: hidden;
+  transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.27), opacity 0.5s;
+}
+
+#booster-top {
+  top: 0; height: 30%;
+  border-bottom: 4px dashed var(--blk); /* The tear line */
+  transform-origin: bottom center;
+  z-index: 2;
+}
+#booster-bottom {
+  bottom: 0; height: 70%;
+  border-top: none;
+  z-index: 1;
+}
+
+.booster-text {
+  font-family: 'Impact', sans-serif;
+  color: var(--blk); transform: skewX(-5deg); letter-spacing: 0.1em;
+  text-shadow: 2px 2px 0 var(--wht);
+}
+
+/* Animations for Pack */
+@keyframes packShakeAnim {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  25% { transform: translateX(-6px) rotate(-3deg); }
+  50% { transform: translateX(6px) rotate(3deg); }
+  75% { transform: translateX(-6px) rotate(-3deg); }
+}
+.pack-shake {
+  animation: packShakeAnim 0.15s infinite;
+}
+
+/* Torn State */
+#booster-pack-container.torn #booster-top {
+  transform: translateY(-200px) rotate(-15deg); opacity: 0;
+}
+#booster-pack-container.torn #booster-bottom {
+  transform: translateY(250px) rotate(10deg); opacity: 0;
+}
+
+/* Cards Grid inside overlay */
+#gacha-reveal-grid {
+  display: flex; flex-wrap: wrap; gap: 15px; justify-content: center;
+  max-width: 800px; margin: 0 auto;
+  z-index: 10000;
+  opacity: 0;
+  transform: translateY(80px) scale(0.6);
+  transition: all 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.27);
+  perspective: 1000px;
+}
+
+.card-reveal-pop {
+  width: 130px; 
+}
+
+/* Base popup entrance animation */
+@keyframes popUpBounce {
+  0% { transform: scale(0) translateY(50px); opacity: 0; }
+  60% { transform: scale(1.1) translateY(-10px); opacity: 1; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* Card face down design */
+.card-face-down {
+  width: 100%; aspect-ratio: 0.72;
+  background: repeating-linear-gradient(45deg, var(--blk2), var(--blk2) 10px, var(--blk) 10px, var(--blk) 20px);
+  border: 4px solid var(--con);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; box-shadow: 4px 4px 0 var(--blk);
+  transition: transform 0.15s, border-color 0.15s;
+}
+.card-face-down:hover {
+  transform: translateY(-4px) scale(1.05);
+  border-color: var(--yel);
+}
+
+/* Card flip animation */
+@keyframes flipCardAnim {
+  0% { transform: scaleX(1); }
+  50% { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+
+/* Special Legendary Pop Animation */
+@keyframes legendaryUltra {
+  0% { box-shadow: 0 0 15px var(--yel), 0 0 30px #fff; transform: scale(1) translateY(0); }
+  50% { box-shadow: 0 0 40px var(--yel), 0 0 70px #fff; transform: scale(1.08) translateY(-8px); }
+  100% { box-shadow: 0 0 15px var(--yel), 0 0 30px #fff; transform: scale(1) translateY(0); }
+}
+.card.legendary-pop {
+  animation: legendaryUltra 1.2s ease-in-out infinite !important;
+  border-color: #fff !important;
+  z-index: 50;
+}
+
+/* ── SCREEN: COLLECTION & DECK CONTROLS ────── */
+#collection-controls, #deck-pool-controls {
+  display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center;justify-content:center;
+}
+.filter-btn{
+  background:var(--blk4);border:2.5px solid var(--con);
+  color:var(--con2);font-family:inherit;font-size:.58rem;
+  letter-spacing:.18em;text-transform:uppercase;padding:6px 12px;
+  cursor:pointer; transition:all 0.1s;
+}
+.filter-btn.active{background:var(--yel);color:var(--blk);border-color:var(--yel)}
+
+#collection-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px; padding-top:10px;
+}
+.card-count-badge{
+  position:absolute;bottom:4px;right:4px;
+  background:var(--blk);border:2px solid var(--yel);
+  font-size:.5rem;color:var(--yel);padding:1px 4px;letter-spacing:.1em;
+}
+
+/* ── SCREEN: DECK ──────────── */
+#deck-info{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.deck-count-box{
+  background:var(--blk3);border:3px solid var(--yel);
+  padding:6px 14px;font-size:1rem;color:var(--yel);
+  letter-spacing:.1em;transform:skewX(-3deg);
+}
+#deck-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;
+  margin-bottom:16px;
+}
+.deck-slot{
+  border:3px dashed var(--con);
+  aspect-ratio:.72;display:flex;align-items:center;justify-content:center;
+  font-size:.6rem;color:var(--con);letter-spacing:.2em;
+  cursor:pointer;position:relative;
+}
+.deck-slot.filled{border-style:solid;border-color:var(--yel)}
+.remove-card{
+  position:absolute;top:-6px;right:-6px;
+  background:var(--red);border:2px solid var(--blk);
+  color:#fff;font-size:.7rem;width:18px;height:18px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;z-index:10;font-family:inherit;
+}
+#deck-pool{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;
+}
+
+/* ── SCREEN: BATTLE ────────── */
+#battle-wrap{max-width:600px;margin:0 auto}
+.battle-field{
+  background:var(--blk3);border:5px solid var(--con);
+  padding:12px;margin-bottom:12px;
+  box-shadow:var(--sh-sm);
+}
+.battle-header{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:8px;
+}
+.battle-side-label{
+  font-size:.6rem;letter-spacing:.25em;color:var(--con);text-transform:uppercase;
+}
+.battle-hp-bar-wrap{margin-bottom:8px}
+.battle-hp-label{font-size:.6rem;letter-spacing:.15em;color:var(--con2);margin-bottom:3px}
+.battle-hp-track{
+  height:12px;background:var(--blk4);border:2px solid var(--con);
+  position:relative;overflow:hidden;
+}
+.battle-hp-fill{
+  height:100%;background:var(--grn);
+  transition:width .4s cubic-bezier(.25,.46,.45,.94);
+}
+.battle-hp-fill.low{background:var(--red);animation:hpPulse .6s ease-in-out infinite alternate}
+@keyframes hpPulse{from{opacity:1}to{opacity:.5}}
+
+.battle-card-large{
+  background:var(--blk4);border:5px solid var(--con);
+  padding:12px;display:flex;gap:12px;align-items:center;
+  margin-bottom:8px;position:relative;overflow:hidden;
+}
+.battle-card-art{
+  width:72px;height:72px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.8rem;background:var(--blk);border:3px solid var(--con);
+}
+.battle-card-info{flex:1}
+.battle-card-name{
+  font-size:.9rem;letter-spacing:.14em;color:var(--wht);
+  text-transform:uppercase;margin-bottom:4px;
+}
+.battle-card-stats{font-size:.7rem;color:var(--con2);letter-spacing:.1em}
+.battle-card-stats span{margin-right:10px}
+.battle-card-stats .hp{color:var(--grn)}
+.battle-card-stats .atk{color:var(--red)}
+
+.battle-log{
+  background:var(--blk4);border:3px solid var(--con);
+  padding:8px;max-height:120px;overflow-y:auto;
+  margin-bottom:12px;
+}
+.log-line{
+  font-size:.6rem;letter-spacing:.12em;color:var(--con2);
+  padding:2px 0;border-bottom:1px solid #1a1a1a;text-transform:uppercase;
+}
+.log-line.hit{color:var(--red)}
+.log-line.heal{color:var(--grn)}
+.log-line.sys{color:var(--yel)}
+
+.battle-hand{
+  display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;
+  margin-bottom:10px;
+}
+.battle-hand::-webkit-scrollbar{height:4px}
+.battle-hand-card{
+  flex-shrink:0;width:80px;
+  cursor:pointer;transition:transform .1s;
+}
+.battle-hand-card:hover{transform:translateY(-6px)}
+.battle-hand-card.selected{outline:3px solid var(--yel);outline-offset:2px}
+.battle-hand-card.used{opacity:.35;pointer-events:none}
+
+.battle-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+
+/* Damage popup */
+.dmg-popup{
+  position:fixed;font-size:2rem;color:var(--red);
+  font-family:inherit;letter-spacing:.1em;
+  pointer-events:none;z-index:500;
+  animation:dmgFloat 1s ease-out forwards;
+}
+.dmg-popup.heal{color:var(--grn)}
+@keyframes dmgFloat{
+  0%{opacity:1;transform:translateY(0) scale(1)}
+  100%{opacity:0;transform:translateY(-60px) scale(1.5)}
+}
+
+/* Shake animation */
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-8px)}
+  40%{transform:translateX(8px)}
+  60%{transform:translateX(-6px)}
+  80%{transform:translateX(6px)}
+}
+.shake{animation:shake .35s ease}
+
+/* ── MODAL ─────────────────── */
+#modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.82);
+  z-index:300;display:none;align-items:center;justify-content:center;
+  padding:16px;
+}
+#modal-overlay.active{display:flex}
+#modal-box{
+  background:var(--blk2);border:5px solid var(--yel);
+  box-shadow:8px 8px 0 var(--yel);
+  max-width:400px;width:100%;padding:24px;
+  max-height:80vh;overflow-y:auto;
+  position:relative;
+}
+#modal-close{
+  position:absolute;top:10px;right:10px;
+  background:var(--red);border:none;color:#fff;
+  font-family:inherit;font-size:.85rem;padding:4px 8px;
+  cursor:pointer;letter-spacing:.1em;
+}
+.modal-title{
+  font-size:1.4rem;color:var(--yel);letter-spacing:.14em;
+  text-transform:uppercase;margin-bottom:12px;text-shadow:3px 3px 0 var(--red);
+}
+
+/* ── FLASH ─────────────────── */
+#flash{
+  position:fixed;inset:0;pointer-events:none;z-index:999;
+  opacity:0;transition:opacity .06s;
+}
+
+/* ── Toast ─────────────────── */
+#toast{
+  position:fixed;top:16px;left:50%;transform:translateX(-50%) skewX(-3deg);
+  background:var(--yel);color:var(--blk);
+  border:4px solid var(--blk);padding:8px 20px;
+  font-size:.8rem;letter-spacing:.2em;text-transform:uppercase;
+  z-index:400;opacity:0;transition:opacity .2s;box-shadow:4px 4px 0 var(--blk);
+  pointer-events:none;white-space:nowrap;
+}
+#toast.show{opacity:1}
+
+/* ── responsive tweaks ─────── */
+@media(max-width:400px){
+  .btn.big{padding:11px 18px;font-size:.9rem}
+  #collection-grid,#deck-grid,#deck-pool{grid-template-columns:repeat(auto-fill,minmax(90px,1fr))}
+  .card-reveal-pop { width: 110px; }
+}
+</style>
+</head>
+<body>
+
+<div id="flash"></div>
+<div id="toast"></div>
+
+<div id="screen-home" class="screen active">
+  <div style="text-align:center;padding-top:24px">
+    <div id="home-logo">SCRAP<br>LEGENDS</div>
+    <div id="home-sub">Neo-Brutalist Card Battle · Collect &amp; Destroy</div>
+    <div id="home-currency" style="margin:0 auto 20px;display:flex;justify-content:center">
+      <div id="currency-bar-home" class="currency-display"></div>
+    </div>
+    <div class="home-btn-grid">
+      <div class="home-btn-row">
+        <button class="btn big" onclick="nav('gacha')">⚙ BELI PACK</button>
+        <button class="btn big red" onclick="nav('battle')">⚔ BATTLE</button>
+      </div>
+      <div class="home-btn-row">
+        <button class="btn ghost" onclick="nav('collection')">📦 KOLEKSI</button>
+        <button class="btn ghost" onclick="nav('deck')">🃏 DECK</button>
+      </div>
+    </div>
+    <div class="stats-bar" id="home-stats"></div>
+    <div style="margin-top:20px">
+      <button class="btn red" style="font-size:.6rem;padding:7px 14px" onclick="confirmReset()">⚠ RESET DATA</button>
+    </div>
+    <div style="margin-top:18px;background:var(--blk3);border:3px solid var(--con);padding:12px;max-width:440px;margin-left:auto;margin-right:auto;text-align:left">
+      <div style="font-size:.65rem;letter-spacing:.22em;color:var(--yel);text-transform:uppercase;margin-bottom:8px">— CARA MAIN —</div>
+      <div style="font-size:.58rem;color:var(--con2);letter-spacing:.14em;line-height:1.9;text-transform:uppercase">
+        1. BELI PACK → Robek Booster Pack untuk kartu baru<br>
+        2. DECK BUILDER → Pilih 5-8 kartu untuk battle<br>
+        3. BATTLE → Kalahkan musuh AI, menang dapat SCRAP<br>
+        4. Gunakan SCRAP untuk beli lebih banyak pack<br>
+        5. Kumpulkan kartu Legendary untuk mendominasi!
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="screen-gacha" class="screen">
+  <div class="page-title">⚙ BELI PACK</div>
+  <div class="page-sub">Buka Booster Pack — Dapatkan Kartu Brutal</div>
+  <div id="gacha-currency-bar" class="currency-display" style="margin-bottom:14px"></div>
+  <div id="gacha-area">
+    
+    <div class="gacha-machine" id="gacha-machine">
+      <div class="booster-pack-idle">
+        <div style="font-size:1.2rem; font-family:'Impact'; color:var(--blk); transform:skewX(-5deg); letter-spacing:0.1em; border-bottom:3px solid var(--blk); padding-bottom:5px; margin-bottom:5px;">BOOSTER</div>
+        <div style="font-size:2.4rem; font-family:'Impact'; color:var(--red); text-shadow: 2px 2px 0 var(--blk); transform:skewX(-5deg); line-height:1;">PACK</div>
+      </div>
+    </div>
+    
+    <div class="gacha-btn-row">
+      <button class="btn big" id="btn-pull-1" onclick="doPull(1)">1 PULL<br><small style="font-size:.65rem">160 ⚙</small></button>
+      <button class="btn big red" id="btn-pull-10" onclick="doPull(10)">10 PULL<br><small style="font-size:.65rem">1600 ⚙</small></button>
+    </div>
+    <div class="pity-bar-wrap">
+      <div class="pity-bar-label">PITY: <span id="pity-count">0</span>/10 (Rare Guaranteed)</div>
+      <div class="pity-bar-track"><div class="pity-bar-fill" id="pity-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+</div>
+
+<div id="gacha-reveal-overlay" class="hidden">
+  <div style="text-align:center; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative;">
+    
+    <h2 class="page-title" id="reveal-title" style="margin-bottom:24px; color:var(--wht); text-shadow:4px 4px 0 var(--yel); opacity:0; transition: opacity 0.3s; z-index:10002;">MEMBUKA PACK...</h2>
+    
+    <div id="booster-pack-container">
+      <div id="booster-top" class="booster-half">
+        <div class="booster-text" style="font-size:1.5rem; border-bottom: 4px solid var(--blk); margin-top:20px;">BOOSTER</div>
+      </div>
+      <div id="booster-bottom" class="booster-half">
+        <div class="booster-text" style="font-size:3rem; margin-top:-40px; color:var(--red); text-shadow: 2px 2px 0 var(--blk);">PACK</div>
+      </div>
+    </div>
+
+    <div id="gacha-reveal-grid"></div>
+    
+    <div style="display:flex; gap:10px; margin-top:30px; z-index:10002;">
+        <button class="btn big ghost" id="btn-skip-reveal" onclick="skipReveal()" style="display:none;">⏩ LEWATI</button>
+        <button class="btn big red" id="btn-close-reveal" onclick="closeGachaReveal()" style="display:none;">TUTUP</button>
+    </div>
+
+  </div>
+</div>
+
+<div id="screen-collection" class="screen">
+  <div class="page-title">📦 KOLEKSI</div>
+  <div class="page-sub">Semua Kartu Yang Ada Di Game</div>
+  
+  <div id="collection-controls">
+    <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:center; width:100%; margin-bottom:8px;">
+        <button class="filter-btn active" onclick="filterCollection('all',this)">SEMUA</button>
+        <button class="filter-btn" onclick="filterCollection('owned',this)">DIMILIKI</button>
+        <button class="filter-btn" onclick="filterCollection('missing',this)">BELUM PUNYA</button>
+    </div>
+    <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:center; width:100%;">
+        <button class="filter-btn" onclick="filterCollection('common',this)">COMMON</button>
+        <button class="filter-btn" onclick="filterCollection('rare',this)">RARE</button>
+        <button class="filter-btn" onclick="filterCollection('epic',this)">EPIC</button>
+        <button class="filter-btn" onclick="filterCollection('legendary',this)">LEGENDARY</button>
+    </div>
+  </div>
+  <div id="collection-grid"></div>
+</div>
+
+<div id="screen-deck" class="screen">
+  <div class="page-title">🃏 DECK BUILDER</div>
+  <div class="page-sub">Pilih 5-8 Kartu Untuk Battle</div>
+  <div id="deck-info">
+    <div class="deck-count-box">DECK: <span id="deck-count">0</span>/8</div>
+    <button class="btn" onclick="saveDeck()">💾 SIMPAN DECK</button>
+    <button class="btn red" onclick="clearDeck()">🗑 KOSONGKAN</button>
+  </div>
+  <div id="deck-grid"></div>
+  
+  <div style="font-size:.65rem;letter-spacing:.2em;color:var(--con);text-transform:uppercase;margin:12px 0 8px">— PILIH DARI KOLEKSI —</div>
+  
+  <div id="deck-pool-controls">
+    <button class="filter-btn active" onclick="filterDeckPool('all',this)">ALL</button>
+    <button class="filter-btn" onclick="filterDeckPool('common',this)">COMMON</button>
+    <button class="filter-btn" onclick="filterDeckPool('rare',this)">RARE</button>
+    <button class="filter-btn" onclick="filterDeckPool('epic',this)">EPIC</button>
+    <button class="filter-btn" onclick="filterDeckPool('legendary',this)">LEGENDARY</button>
+  </div>
+
+  <div id="deck-pool"></div>
+</div>
+
+<div id="screen-battle" class="screen">
+  <div id="battle-wrap">
+    <div class="page-title">⚔ ARENA BATTLE</div>
+    <div id="battle-prep" style="text-align:center">
+      <div class="page-sub">Pilih Musuh Dan Mulai Battle</div>
+      <div id="enemy-select" style="display:flex;flex-direction:column;gap:10px;max-width:380px;margin:0 auto 16px"></div>
+      <button class="btn big" onclick="startBattle()">⚔ MULAI BATTLE</button>
+      <div style="margin-top:10px;font-size:.6rem;color:var(--con);letter-spacing:.15em;text-transform:uppercase">
+        Deck kamu harus minimal 5 kartu!
+      </div>
+    </div>
+    <div id="battle-active" style="display:none">
+      <div class="battle-field" id="enemy-field">
+        <div class="battle-header">
+          <div class="battle-side-label">⚔ MUSUH</div>
+          <div class="battle-side-label" id="enemy-name-label">-</div>
+        </div>
+        <div class="battle-hp-bar-wrap">
+          <div class="battle-hp-label">HP: <span id="enemy-hp-val">-</span></div>
+          <div class="battle-hp-track"><div class="battle-hp-fill" id="enemy-hp-bar" style="width:100%"></div></div>
+        </div>
+        <div class="battle-card-large" id="enemy-card-display">
+          <div class="battle-card-art" id="enemy-art">❓</div>
+          <div class="battle-card-info">
+            <div class="battle-card-name" id="enemy-card-name">???</div>
+            <div class="battle-card-stats">
+              <span class="hp">HP: <span id="enemy-card-hp">-</span></span>
+              <span class="atk">ATK: <span id="enemy-card-atk">-</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="battle-log" id="battle-log"></div>
+
+      <div class="battle-field" id="player-field">
+        <div class="battle-header">
+          <div class="battle-side-label">🛡 KAMU</div>
+          <div class="battle-side-label" id="player-deck-left">-</div>
+        </div>
+        <div class="battle-hp-bar-wrap">
+          <div class="battle-hp-label">HP TOTAL: <span id="player-hp-val">-</span></div>
+          <div class="battle-hp-track"><div class="battle-hp-fill" id="player-hp-bar" style="width:100%"></div></div>
+        </div>
+        <div class="battle-card-large" id="active-card-display">
+          <div class="battle-card-art" id="active-art">-</div>
+          <div class="battle-card-info">
+            <div class="battle-card-name" id="active-card-name">-</div>
+            <div class="battle-card-stats">
+              <span class="hp">HP: <span id="active-card-hp">-</span></span>
+              <span class="atk">ATK: <span id="active-card-atk">-</span></span>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:.58rem;letter-spacing:.18em;color:var(--con);text-transform:uppercase;margin-bottom:5px">— KARTU DI TANGAN —</div>
+        <div class="battle-hand" id="battle-hand"></div>
+        <div class="battle-actions">
+          <button class="btn" id="btn-attack" onclick="playerAttack()">⚡ SERANG</button>
+          <button class="btn ghost" id="btn-swap" onclick="openSwapModal()">🔄 GANTI</button>
+          <button class="btn ghost" id="btn-auto" onclick="toggleAutoBattle()">🤖 AUTO</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-overlay">
+  <div id="modal-box">
+    <button id="modal-close" onclick="closeModal()">✕ TUTUP</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<nav id="navbar">
+  <button class="nav-btn active" id="nav-home" onclick="nav('home')">
+    <span class="ico">🏠</span><span>HOME</span>
+  </button>
+  <button class="nav-btn" id="nav-gacha" onclick="nav('gacha')">
+    <span class="ico">⚙</span><span>GACHA</span>
+  </button>
+  <button class="nav-btn" id="nav-collection" onclick="nav('collection')">
+    <span class="ico">📦</span><span>KOLEKSI</span>
+  </button>
+  <button class="nav-btn" id="nav-deck" onclick="nav('deck')">
+    <span class="ico">🃏</span><span>DECK</span>
+  </button>
+  <button class="nav-btn" id="nav-battle" onclick="nav('battle')">
+    <span class="ico">⚔</span><span>BATTLE</span>
+  </button>
+</nav>
+
+<script>
+/* ================================================================
+   SCRAP LEGENDS — JavaScript
+   Game logic, data, gacha, battle, UI
+================================================================ */
+
+// ── Audio Context ─────────────────────────────────────────────────
+let _ac = null;
+function ac(){if(!_ac)_ac=new(window.AudioContext||window.webkitAudioContext)();return _ac;}
+
+function beep(f,t,d,v,dc){
+  try{
+    const o=ac().createOscillator(),g=ac().createGain();
+    o.connect(g);g.connect(ac().destination);
+    o.type=t||'square';o.frequency.setValueAtTime(f,ac().currentTime);
+    g.gain.setValueAtTime(v||.25,ac().currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,ac().currentTime+(dc||d));
+    o.start();o.stop(ac().currentTime+d);
+  }catch(e){}
+}
+function noise(d,v){
+  try{
+    const buf=ac().createBuffer(1,ac().sampleRate*d,ac().sampleRate);
+    const data=buf.getChannelData(0);
+    for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1;
+    const s=ac().createBufferSource(),g=ac().createGain();
+    s.buffer=buf;s.connect(g);g.connect(ac().destination);
+    g.gain.setValueAtTime(v,ac().currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,ac().currentTime+d);
+    s.start();
+  }catch(e){}
+}
+
+const SFX={
+  click:()=>beep(440,'square',.06,.2,.05),
+  pull:()=>{noise(.08,.3);beep(200,'sawtooth',.15,.25,.12);beep(400,'square',.1,.2,.08)},
+  tear:()=>{ // Suara merobek pack booster
+    noise(0.15, 0.6);
+    setTimeout(() => noise(0.1, 0.4), 100);
+    beep(1200, 'sawtooth', 0.05, 0.1);
+  },
+  rare:()=>{beep(660,'square',.06,.3,.05);beep(880,'square',.08,.3,.06);beep(1100,'square',.12,.35,.1)},
+  epic:()=>{
+    beep(440,'sawtooth',.1,.3,.08);beep(660,'square',.1,.3,.08);
+    beep(880,'sawtooth',.12,.35,.1);beep(1100,'square',.18,.4,.15);
+    noise(.12,.2);
+  },
+  legendary:()=>{
+    [440,550,660,770,880,1100,1320].forEach((f,i)=>
+      setTimeout(()=>beep(f,'square',.12,.35,.1),i*60)
+    );
+    setTimeout(()=>noise(.2,.35),400);
+  },
+  attack:()=>{beep(180,'sawtooth',.08,.3,.07);noise(.06,.25)},
+  hit:()=>{noise(.1,.4);beep(80,'square',.1,.35,.09)},
+  win:()=>{
+    [523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,'square',.18,.3,.15),i*100));
+  },
+  lose:()=>{
+    [400,300,200,120].forEach((f,i)=>setTimeout(()=>beep(f,'sawtooth',.22,.3,.2),i*140));
+    setTimeout(()=>noise(.3,.25),560);
+  },
+  coin:()=>{beep(880,'square',.05,.2,.04);beep(1100,'square',.07,.2,.06)},
+};
+
+// ── Card Data ────────────────────────────────────────────────────
+const TYPE_ADV = {fire:'steel',steel:'concrete',concrete:'neon',neon:'void',void:'acid',acid:'fire'};
+const TYPE_COLOR = {concrete:'#888',steel:'#90caf9',fire:'#f44336',neon:'#00e676',void:'#d500f9',acid:'#c6ff00'};
+const TYPE_EMOJI = {concrete:'🧱',steel:'⚙️',fire:'🔥',neon:'💚',void:'🌀',acid:'☠️'};
+
+const CARD_POOL = [
+  // COMMON
+  {id:'c1',name:'Concrete Thug',emoji:'🤜',rarity:'common',type:'concrete',hp:60,atk:14,desc:'A street fighter made of pure concrete.'},
+  {id:'c2',name:'Steel Worker',emoji:'🔧',rarity:'common',type:'steel',hp:55,atk:16,desc:'Industrial laborer with iron fists.'},
+  {id:'c3',name:'Scrap Rat',emoji:'🐀',rarity:'common',type:'concrete',hp:45,atk:18,desc:'Fast and vicious from the junkyard.'},
+  {id:'c4',name:'Rust Punk',emoji:'🦾',rarity:'common',type:'steel',hp:58,atk:15,desc:'Half-machine, all attitude.'},
+  {id:'c5',name:'Asphalt Dog',emoji:'🐕',rarity:'common',type:'concrete',hp:52,atk:14,desc:'Urban predator of the wasteland.'},
+  {id:'c6',name:'Welding Grunt',emoji:'🔥',rarity:'common',type:'fire',hp:50,atk:17,desc:'Burns everything in its path.'},
+  {id:'c7',name:'Grid Crawler',emoji:'📡',rarity:'common',type:'neon',hp:48,atk:16,desc:'Feeds on electrical signals.'},
+  {id:'c8',name:'Void Drone',emoji:'🛸',rarity:'common',type:'void',hp:53,atk:15,desc:'Materializes from the void.'},
+  // RARE
+  {id:'r1',name:'Iron Golem',emoji:'🗿',rarity:'rare',type:'steel',hp:90,atk:24,desc:'Forged from scrap metal and rage.'},
+  {id:'r2',name:'Lava Cutter',emoji:'🌋',rarity:'rare',type:'fire',hp:75,atk:30,desc:'Melts through steel plate armor.'},
+  {id:'r3',name:'Neon Serpent',emoji:'🐍',rarity:'rare',type:'neon',hp:80,atk:26,desc:'Strikes with electric precision.'},
+  {id:'r4',name:'Acid Worm',emoji:'🪱',rarity:'rare',type:'acid',hp:85,atk:22,desc:'Dissolves enemy defenses.'},
+  {id:'r5',name:'Void Walker',emoji:'👻',rarity:'rare',type:'void',hp:78,atk:28,desc:'Phases through physical attacks.'},
+  {id:'r6',name:'Concrete Titan',emoji:'🏗',rarity:'rare',type:'concrete',hp:100,atk:20,desc:'Unstoppable wall of destruction.'},
+  // EPIC
+  {id:'e1',name:'Cyber Warlord',emoji:'🤖',rarity:'epic',type:'steel',hp:120,atk:38,desc:'Augmented war machine from the future.'},
+  {id:'e2',name:'Plasma Drake',emoji:'🐉',rarity:'epic',type:'fire',hp:105,atk:44,desc:'Fire and plasma combined in one beast.'},
+  {id:'e3',name:'Neon Ghost',emoji:'👾',rarity:'epic',type:'neon',hp:110,atk:40,desc:'Haunts the digital grid with fury.'},
+  {id:'e4',name:'Acid Hydra',emoji:'🐊',rarity:'epic',type:'acid',hp:115,atk:36,desc:'Multiple heads, all dripping acid.'},
+  {id:'e5',name:'Void Reaper',emoji:'💀',rarity:'epic',type:'void',hp:100,atk:48,desc:'Harvests souls from the void.'},
+  // LEGENDARY
+  {id:'l1',name:'SCRAP GOD',emoji:'⚡',rarity:'legendary',type:'steel',hp:180,atk:65,desc:'The supreme ruler of the junkyard.'},
+  {id:'l2',name:'INFERNO KING',emoji:'☀️',rarity:'legendary',type:'fire',hp:160,atk:75,desc:'Born from the heart of a dying star.'},
+  {id:'l3',name:'VOID LORD',emoji:'🌌',rarity:'legendary',type:'void',hp:170,atk:70,desc:'Commands the darkness between worlds.'},
+  {id:'l4',name:'CONCRETE BEHEMOTH',emoji:'🏛',rarity:'legendary',type:'concrete',hp:200,atk:58,desc:'Ancient colossus of pure urban stone.'},
+];
+
+// Enemy templates
+const ENEMIES = [
+  {id:'easy',name:'JUNKYARD ROOKIE',icon:'😤',reward:20,deck:[{id:'e_c1',...CARD_POOL[0],hp:50,atk:12},{id:'e_c2',...CARD_POOL[1],hp:45,atk:14},{id:'e_c3',...CARD_POOL[2],hp:42,atk:13}]},
+  {id:'mid',name:'STREET ENFORCER',icon:'😠',reward:40,deck:[{id:'e_r1',...CARD_POOL[8],hp:80,atk:22},{id:'e_r2',...CARD_POOL[9],hp:70,atk:26},{id:'e_c4',...CARD_POOL[3],hp:55,atk:14},{id:'e_r3',...CARD_POOL[10],hp:75,atk:24}]},
+  {id:'hard',name:'BRUTAL VETERAN',icon:'😡',reward:80,deck:[{id:'e_e1',...CARD_POOL[16],hp:110,atk:35},{id:'e_e2',...CARD_POOL[17],hp:95,atk:40},{id:'e_r4',...CARD_POOL[11],hp:80,atk:22},{id:'e_e3',...CARD_POOL[18],hp:100,atk:36},{id:'e_r5',...CARD_POOL[12],hp:75,atk:26}]},
+  {id:'boss',name:'⚡ SCRAP OVERLORD',icon:'💀',reward:160,deck:[{id:'e_l1',...CARD_POOL[21],hp:170,atk:60},{id:'e_e4',...CARD_POOL[19],hp:110,atk:38},{id:'e_e5',...CARD_POOL[20],hp:100,atk:45},{id:'e_l2',...CARD_POOL[22],hp:150,atk:68},{id:'e_r6',...CARD_POOL[13],hp:90,atk:24}]},
+];
+
+// ── Game State ────────────────────────────────────────────────────
+let STATE = {
+  scrap: 500,       
+  collection: [],   
+  deck: [],         
+  pity: 0,          
+  wins: 0,
+  losses: 0,
+  totalPulls: 0,
+};
+
+function loadState(){
+  try{const s=localStorage.getItem('sl_save'); if(s){Object.assign(STATE,JSON.parse(s));}}catch(e){}
+}
+function saveState(){
+  localStorage.setItem('sl_save',JSON.stringify(STATE));
+}
+
+// ── Navigation ─────────────────────────────────────────────────────
+let currentScreen = 'home';
+function nav(s){
+  SFX.click();
+  document.querySelectorAll('.screen').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('screen-'+s).classList.add('active');
+  document.getElementById('nav-'+s)?.classList.add('active');
+  currentScreen = s;
+  
+  if(s==='home') renderHome();
+  if(s==='gacha') renderGacha();
+  if(s==='collection') filterCollection('all', document.querySelector('#collection-controls .filter-btn'));
+  if(s==='deck') filterDeckPool('all', document.querySelector('#deck-pool-controls .filter-btn')); // Render & Filter reset
+  if(s==='battle') renderBattlePrep();
+}
+
+// ── Currency & Effects ──────────────────────────────────────────────
+function renderCurrency(targetId){
+  const el=document.getElementById(targetId);
+  if(!el)return;
+  el.className='currency-display';
+  el.style.cssText='display:inline-flex;align-items:center;gap:10px;background:var(--blk3);border:3px solid var(--yel);padding:6px 14px;box-shadow:3px 3px 0 var(--yel);transform:skewX(-2deg)';
+  el.innerHTML=`<span style="font-size:1.2rem">⚙</span><div><div style="font-size:.52rem;letter-spacing:.2em;color:var(--con);text-transform:uppercase">SCRAP</div><div style="font-size:1.1rem;color:var(--yel);letter-spacing:.1em">${STATE.scrap}</div></div>`;
+}
+
+function flash(color='#f44336'){
+  const f=document.getElementById('flash');
+  f.style.background=color;f.style.opacity='.55';
+  setTimeout(()=>f.style.opacity='0',100);
+}
+
+let toastTimer=null;
+function toast(msg,duration=2200){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  if(toastTimer)clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),duration);
+}
+
+function dmgPopup(el,amount,isHeal=false){
+  const r=el.getBoundingClientRect();
+  const d=document.createElement('div');
+  d.className='dmg-popup'+(isHeal?' heal':'');
+  d.textContent=(isHeal?'+':'-')+amount;
+  d.style.left=(r.left+r.width/2-30)+'px';
+  d.style.top=(r.top+window.scrollY)+'px';
+  document.body.appendChild(d);
+  setTimeout(()=>d.remove(),1000);
+}
+
+function renderHome(){
+  renderCurrency('currency-bar-home');
+  const s=document.getElementById('home-stats');
+  const ownedCount=STATE.collection.reduce((a,c)=>a+c.count,0);
+  const uniqueCount=STATE.collection.length;
+  s.innerHTML=`<div class="stat-pill">KARTU: <b>${ownedCount}</b></div><div class="stat-pill">UNIK: <b>${uniqueCount}/${CARD_POOL.length}</b></div><div class="stat-pill">MENANG: <b>${STATE.wins}</b></div><div class="stat-pill">KALAH: <b>${STATE.losses}</b></div><div class="stat-pill">TOTAL PULL: <b>${STATE.totalPulls}</b></div>`;
+}
+
+// ── GACHA (PACK OPENING & REVEAL) ─────────────────────────────────────────
+const PULL_COST = {1:160, 10:1600};
+const RARITY_RATES = {common:.65, rare:.25, epic:.08, legendary:.02};
+let isPulling = false; 
+let currentPulledCards = [];
+
+function getCardByRarity(rarity){
+  const pool=CARD_POOL.filter(c=>c.rarity===rarity);
+  return {...pool[Math.floor(Math.random()*pool.length)]};
+}
+
+function pullOne(){
+  STATE.pity++;
+  let rarity;
+  const r=Math.random();
+  if(STATE.pity>=60){rarity='legendary';STATE.pity=0;}
+  else if(STATE.pity>=30 && r<.15){rarity='epic';STATE.pity=0;}
+  else if(STATE.pity>=10){rarity='rare';STATE.pity=0;}
+  else{
+    if(r<RARITY_RATES.legendary)rarity='legendary';
+    else if(r<RARITY_RATES.legendary+RARITY_RATES.epic)rarity='epic';
+    else if(r<RARITY_RATES.legendary+RARITY_RATES.epic+RARITY_RATES.rare)rarity='rare';
+    else rarity='common';
+  }
+  const card=getCardByRarity(rarity);
+  const existing=STATE.collection.find(c=>c.cardId===card.id);
+  if(existing)existing.count++;
+  else STATE.collection.push({cardId:card.id,count:1});
+  STATE.totalPulls++;
+  return card;
+}
+
+function renderGacha(){
+  renderCurrency('gacha-currency-bar');
+  document.getElementById('pity-count').textContent=STATE.pity;
+  document.getElementById('pity-fill').style.width=(STATE.pity/10*100)+'%';
+}
+
+function doPull(count){
+  if(isPulling) return;
+  const cost=PULL_COST[count]||count*100;
+  if(STATE.scrap<cost){toast('⚠ SCRAP TIDAK CUKUP!');return;}
+  
+  isPulling = true;
+  STATE.scrap-=cost;
+  
+  currentPulledCards=[];
+  for(let i=0;i<count;i++)currentPulledCards.push(pullOne());
+  saveState();
+  renderGacha();
+  renderCurrency('currency-bar-home');
+
+  showPackOpeningSequence(currentPulledCards);
+}
+
+function showPackOpeningSequence(cards) {
+  const overlay = document.getElementById('gacha-reveal-overlay');
+  const packContainer = document.getElementById('booster-pack-container');
+  const grid = document.getElementById('gacha-reveal-grid');
+  const title = document.getElementById('reveal-title');
+  const btnClose = document.getElementById('btn-close-reveal');
+  const btnSkip = document.getElementById('btn-skip-reveal');
+
+  grid.innerHTML = '';
+  grid.style.opacity = '0';
+  grid.style.transform = 'translateY(80px) scale(0.6)';
+  
+  packContainer.className = ''; 
+  packContainer.style.display = 'flex';
+  
+  title.style.opacity = '0';
+  btnClose.style.display = 'none';
+  btnSkip.style.display = 'none';
+  
+  overlay.classList.remove('hidden');
+
+  packContainer.classList.add('pack-shake');
+  SFX.pull();
+
+  setTimeout(() => {
+    packContainer.classList.remove('pack-shake');
+    packContainer.classList.add('torn');
+    SFX.tear(); 
+
+    cards.forEach((card, i) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'card-reveal-pop';
+      const delay = i * 0.1; 
+      wrap.style.animationDelay = delay + 's';
+
+      wrap.innerHTML = `
+        <div class="card-face-down" data-idx="${i}" onclick="revealCard(this)">
+          <div style="font-size:3.5rem; color:var(--con2); font-family: 'Arial Black';">?</div>
+        </div>
+      `;
+      grid.appendChild(wrap);
+    });
+
+    grid.style.opacity = '1';
+    grid.style.transform = 'translateY(0) scale(1)';
+    
+    setTimeout(() => {
+      packContainer.style.display = 'none';
+      
+      title.style.opacity = '1';
+      title.textContent = "KLIK UNTUK MEMBUKA KARTU!";
+      
+      btnSkip.style.display = 'block';
+      
+      btnClose.style.display = 'block';
+      btnClose.disabled = true; 
+      btnClose.style.opacity = '0.5';
+      
+      isPulling = false; 
+    }, 800 + (cards.length * 100));
+
+  }, 1000); 
+}
+
+function revealCard(el, skipAnim = false) {
+  if (el.dataset.revealed) return;
+  el.dataset.revealed = "true";
+  
+  const idx = parseInt(el.dataset.idx);
+  const card = currentPulledCards[idx];
+  const wrap = el.parentElement;
+
+  if(!skipAnim) SFX.click();
+
+  wrap.style.animation = 'none';
+  void wrap.offsetWidth;
+  wrap.style.animation = 'flipCardAnim 0.35s ease-in-out forwards';
+
+  setTimeout(() => {
+    wrap.innerHTML = buildCardHTML(card, true);
+    
+    if(card.rarity === 'legendary') {
+      wrap.querySelector('.card').classList.add('legendary-pop');
+      if(!skipAnim) { SFX.legendary(); flash('#ffd600'); }
+    } else if (card.rarity === 'epic') {
+      if(!skipAnim) { SFX.epic(); flash('#d500f9'); }
+    } else if (card.rarity === 'rare') {
+      if(!skipAnim) SFX.rare();
+    }
+
+    checkAllRevealed();
+  }, 175); 
+}
+
+function skipReveal() {
+  const unrevealed = document.querySelectorAll('.card-face-down:not([data-revealed="true"])');
+  if (unrevealed.length === 0) return;
+
+  let bestRarity = 'common';
+  
+  unrevealed.forEach((el) => {
+    revealCard(el, true); 
+    const card = currentPulledCards[parseInt(el.dataset.idx)];
+    if(card.rarity === 'legendary') bestRarity = 'legendary';
+    else if(card.rarity === 'epic' && bestRarity !== 'legendary') bestRarity = 'epic';
+    else if(card.rarity === 'rare' && !['legendary','epic'].includes(bestRarity)) bestRarity = 'rare';
+  });
+
+  setTimeout(() => {
+    if(bestRarity === 'legendary') { SFX.legendary(); flash('#ffd600'); }
+    else if(bestRarity === 'epic') { SFX.epic(); flash('#d500f9'); }
+    else if(bestRarity === 'rare') SFX.rare();
+    else SFX.click();
+  }, 200);
+}
+
+function checkAllRevealed() {
+  const unrevealed = document.querySelectorAll('.card-face-down:not([data-revealed="true"])');
+  if(unrevealed.length === 0) {
+    document.getElementById('reveal-title').textContent = "SEMUA KARTU TERBUKA!";
+    document.getElementById('btn-skip-reveal').style.display = 'none';
+    
+    const btnClose = document.getElementById('btn-close-reveal');
+    btnClose.disabled = false;
+    btnClose.style.opacity = '1';
+  }
+}
+
+function closeGachaReveal(){
+  document.getElementById('gacha-reveal-overlay').classList.add('hidden');
+  SFX.click();
+}
+
+// ── Card HTML builder ─────────────────────────────────────────────
+function buildCardHTML(card,small=false){
+  const c=CARD_POOL.find(x=>x.id===card.id)||card;
+  const tc=TYPE_COLOR[c.type]||'#888';
+  return `<div class="card ${c.rarity}" style="border-color:${c.rarity==='common'?'#888':''}" onclick="showCardDetail('${c.id}')">
+    <div class="card-art" style="background:linear-gradient(135deg,var(--blk4),${tc}22)">
+      <span>${c.emoji}</span>
+      <div class="rarity-label ${c.rarity}">${c.rarity.toUpperCase()}</div>
+      <div class="card-type-badge" style="color:${tc}">${TYPE_EMOJI[c.type]||''} ${c.type.toUpperCase()}</div>
+    </div>
+    <div class="card-name">${c.name}</div>
+    <div class="card-stats">
+      <span class="card-hp">❤${c.hp}</span>
+      <span class="card-atk">⚡${c.atk}</span>
+    </div>
+  </div>`;
+}
+
+function showCardDetail(cardId){
+  if(!document.getElementById('gacha-reveal-overlay').classList.contains('hidden')) return; 
+
+  const c=CARD_POOL.find(x=>x.id===cardId);
+  if(!c)return;
+  const own=STATE.collection.find(x=>x.cardId===cardId);
+  const tc=TYPE_COLOR[c.type]||'#888';
+  const advOver=Object.keys(TYPE_ADV).find(k=>TYPE_ADV[k]===c.type)||'?';
+  const weakTo=TYPE_ADV[c.type]||'?';
+  document.getElementById('modal-content').innerHTML=`
+    <div class="modal-title">${c.emoji} ${c.name}</div>
+    <div style="display:flex;gap:14px;margin-bottom:12px">
+      <div style="font-size:4rem;background:var(--blk4);border:4px solid ${tc};padding:16px;box-shadow:4px 4px 0 ${tc}">${c.emoji}</div>
+      <div style="font-size:.68rem;letter-spacing:.15em;color:var(--con2);line-height:2;text-transform:uppercase">
+        <div>RARITY: <span style="color:var(--yel)">${c.rarity.toUpperCase()}</span></div>
+        <div>TYPE: <span style="color:${tc}">${c.type.toUpperCase()}</span></div>
+        <div>HP: <span style="color:var(--grn)">${c.hp}</span></div>
+        <div>ATK: <span style="color:var(--red)">${c.atk}</span></div>
+        <div>KUAT vs: <span style="color:var(--grn)">${advOver.toUpperCase()}</span></div>
+        <div>LEMAH vs: <span style="color:var(--red)">${weakTo.toUpperCase()}</span></div>
+        <div>DIMILIKI: <span style="color:var(--yel)">${own?own.count:0}x</span></div>
+      </div>
+    </div>
+    <div style="font-size:.65rem;color:var(--con2);letter-spacing:.12em;font-style:italic;margin-bottom:12px">"${c.desc}"</div>
+    ${own?`<button class="btn" onclick="addToDeck('${c.id}');closeModal()">+ TAMBAH KE DECK</button>`:'<div style="color:var(--con);font-size:.65rem;letter-spacing:.15em">BELUM DIMILIKI</div>'}
+  `;
+  openModal();
+  SFX.click();
+}
+
+// ── COLLECTION ────────────────────────────────────────────────────
+let collectionFilter = 'all';
+
+function filterCollection(filterType, btn) {
+  if (['all', 'owned', 'missing'].includes(filterType)) {
+      document.querySelectorAll('#collection-controls > div:first-child .filter-btn').forEach(b => b.classList.remove('active'));
+      collectionFilter = filterType;
+  } else {
+      document.querySelectorAll('#collection-controls > div:last-child .filter-btn').forEach(b => b.classList.remove('active'));
+      collectionFilter = filterType; 
+  }
+  
+  if(btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+  }
+
+  renderCollection(collectionFilter);
+}
+
+function renderCollection(filter){
+  const grid=document.getElementById('collection-grid');
+  grid.innerHTML='';
+  
+  let displayedCount = 0;
+
+  CARD_POOL.forEach(card => {
+    const owned = STATE.collection.find(c => c.cardId === card.id);
+    
+    if (filter === 'owned' && !owned) return;
+    if (filter === 'missing' && owned) return;
+    if (filter === 'common' && card.rarity !== 'common') return;
+    if (filter === 'rare' && card.rarity !== 'rare') return;
+    if (filter === 'epic' && card.rarity !== 'epic') return;
+    if (filter === 'legendary' && card.rarity !== 'legendary') return;
+
+    displayedCount++;
+    const wrap = document.createElement('div');
+    wrap.style.position = 'relative';
+
+    if (owned) {
+        wrap.innerHTML = buildCardHTML(card, true);
+        if(owned.count > 1){
+            const badge = document.createElement('div');
+            badge.className = 'card-count-badge';
+            badge.textContent = 'x' + owned.count;
+            wrap.querySelector('.card').appendChild(badge);
+        }
+    } else {
+        wrap.innerHTML = `
+            <div class="card locked" onclick="showCardDetail('${card.id}')">
+                <div class="card-art" style="background:var(--blk4)">
+                    <span style="color:var(--con2)">❓</span>
+                    <div class="rarity-label common" style="background:var(--blk);color:var(--con2);border:1px solid var(--con)">???</div>
+                    <div class="card-type-badge" style="color:var(--con2);border-color:var(--con2)">???</div>
+                </div>
+                <div class="card-name" style="color:var(--con2)">???</div>
+                <div class="card-stats">
+                    <span class="card-hp" style="color:var(--con2)">❤???</span>
+                    <span class="card-atk" style="color:var(--con2)">⚡???</span>
+                </div>
+            </div>
+        `;
+    }
+    grid.appendChild(wrap);
+  });
+
+  if(displayedCount === 0){
+    grid.innerHTML = '<div style="color:var(--con);font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;padding:20px;grid-column:1/-1;text-align:center;">TIDAK ADA KARTU</div>';
+  }
+}
+
+// ── DECK BUILDER ─────────────────────────────────────────────────
+let deckPoolFilter = 'all';
+
+function filterDeckPool(filterType, btn) {
+  deckPoolFilter = filterType;
+  if(btn) {
+    document.querySelectorAll('#deck-pool-controls .filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  SFX.click();
+  renderDeck();
+}
+
+function renderDeck(){
+  document.getElementById('deck-count').textContent=STATE.deck.length;
+  const deckGrid=document.getElementById('deck-grid');
+  deckGrid.innerHTML='';
+  for(let i=0;i<8;i++){
+    const slot=document.createElement('div');
+    slot.className='deck-slot'+(STATE.deck[i]?' filled':'');
+    if(STATE.deck[i]){
+      const c=CARD_POOL.find(x=>x.id===STATE.deck[i]);
+      if(c){
+        slot.innerHTML=buildCardHTML(c,true);
+        const rm=document.createElement('button');
+        rm.className='remove-card';rm.textContent='✕';
+        rm.onclick=(e)=>{e.stopPropagation();removeFromDeck(i);};
+        slot.querySelector('.card').appendChild(rm);
+      }
+    }else{
+      slot.innerHTML=`<span style="font-size:.6rem;letter-spacing:.2em;color:var(--con)">KOSONG</span>`;
+    }
+    deckGrid.appendChild(slot);
+  }
+
+  // Render Deck Pool (dengan filter)
+  const pool=document.getElementById('deck-pool');
+  pool.innerHTML='';
+  let displayedCount = 0;
+
+  STATE.collection.forEach(own=>{
+    const c=CARD_POOL.find(x=>x.id===own.cardId);
+    if(!c)return;
+
+    // Filter Logic
+    if (deckPoolFilter !== 'all' && c.rarity !== deckPoolFilter) return;
+
+    displayedCount++;
+    const wrap=document.createElement('div');
+    const inDeck=STATE.deck.filter(id=>id===c.id).length;
+    wrap.innerHTML=buildCardHTML(c,true);
+    wrap.querySelector('.card').onclick=()=>addToDeck(c.id);
+    
+    if(inDeck>0){
+      const badge=document.createElement('div');
+      badge.className='card-count-badge';
+      badge.textContent='✓'+inDeck;
+      badge.style.borderColor='var(--grn)';badge.style.color='var(--grn)';
+      wrap.querySelector('.card').appendChild(badge);
+    }
+    pool.appendChild(wrap);
+  });
+
+  if(displayedCount === 0){
+    pool.innerHTML = '<div style="color:var(--con);font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;padding:20px;grid-column:1/-1;text-align:center;">TIDAK ADA KARTU DENGAN FILTER INI</div>';
+  }
+}
+
+function addToDeck(cardId){
+  if(STATE.deck.length>=8){toast('⚠ DECK PENUH! Max 8 kartu');return;}
+  const own=STATE.collection.find(c=>c.cardId===cardId);
+  if(!own){toast('⚠ Kartu tidak dimiliki');return;}
+  const inDeckCount = STATE.deck.filter(id => id === cardId).length;
+  if(inDeckCount >= own.count) {
+    toast('⚠ MAKSIMAL KARTU! (Sesuai jumlah yang dimiliki)');
+    return;
+  }
+  STATE.deck.push(cardId);
+  SFX.click();
+  toast('✓ KARTU DITAMBAHKAN KE DECK');
+  renderDeck();
+  saveState();
+}
+
+function removeFromDeck(idx){
+  STATE.deck.splice(idx,1);
+  SFX.click();
+  renderDeck();
+  saveState();
+}
+
+function clearDeck(){STATE.deck=[];renderDeck();saveState();SFX.click();}
+
+function saveDeck(){
+  if(STATE.deck.length<5){toast('⚠ MINIMAL 5 KARTU DI DECK!');return;}
+  saveState();toast('💾 DECK DISIMPAN!');SFX.click();
+}
+
+// ── BATTLE ────────────────────────────────────────────────────────
+let autoBattleTimer = null;
+
+let BATTLE={
+  active:false,
+  enemy:null,
+  enemyDeck:[],
+  enemyActiveIdx:0,
+  playerDeck:[],  
+  playerActiveIdx:0,
+  playerHand:[],   
+  playerHpMax:0,
+  enemyHpMax:0,
+  turn:'player',  
+  selectedHandIdx:-1,
+  log:[],
+  isAuto: false    
+};
+
+function renderBattlePrep(){
+  document.getElementById('battle-prep').style.display='block';
+  document.getElementById('battle-active').style.display='none';
+  const sel=document.getElementById('enemy-select');
+  sel.innerHTML='';
+  ENEMIES.forEach(e=>{
+    const btn=document.createElement('div');
+    btn.style.cssText='background:var(--blk3);border:4px solid var(--con);padding:10px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color .1s';
+    btn.innerHTML=`
+      <span style="font-size:2rem">${e.icon}</span>
+      <div>
+        <div style="font-size:.85rem;letter-spacing:.14em;color:var(--yel);text-transform:uppercase">${e.name}</div>
+        <div style="font-size:.58rem;color:var(--con2);letter-spacing:.15em">
+          ${e.deck.length} KARTU · REWARD: ⚙${e.reward} SCRAP
+        </div>
+      </div>
+      <div style="margin-left:auto">
+        <input type="radio" name="enemy" value="${e.id}" style="accent-color:var(--yel)">
+      </div>
+    `;
+    btn.onclick=()=>{
+      btn.querySelector('input').checked=true;
+      document.querySelectorAll('#enemy-select > div').forEach(b=>b.style.borderColor='var(--con)');
+      btn.style.borderColor='var(--yel)';
+      SFX.click();
+    };
+    sel.appendChild(btn);
+  });
+  sel.children[0]?.click();
+}
+
+function toggleAutoBattle() {
+  BATTLE.isAuto = !BATTLE.isAuto;
+  SFX.click();
+  renderBattleUI();
+  
+  if (BATTLE.isAuto && BATTLE.turn === 'player' && BATTLE.active) {
+    autoBattleTimer = setTimeout(playerAttack, 500);
+  }
+}
+
+function startBattle(){
+  if(STATE.deck.length<5){toast('⚠ MINIMAL 5 KARTU DI DECK!');nav('deck');return;}
+  const chosen=document.querySelector('input[name=enemy]:checked');
+  if(!chosen)return;
+  const enemy=ENEMIES.find(e=>e.id===chosen.value);
+  if(!enemy)return;
+  SFX.attack();
+  
+  BATTLE.isAuto = false;
+  if(autoBattleTimer) clearTimeout(autoBattleTimer);
+
+  BATTLE.enemy=enemy;
+  BATTLE.enemyDeck=enemy.deck.map(c=>({...c,currentHp:c.hp}));
+  BATTLE.playerDeck=STATE.deck.map(id=>{
+    const c=CARD_POOL.find(x=>x.id===id);
+    return c?{...c,currentHp:c.hp}:null;
+  }).filter(Boolean);
+  BATTLE.playerActiveIdx=0;
+  BATTLE.enemyActiveIdx=0;
+  BATTLE.playerHpMax=BATTLE.playerDeck.reduce((s,c)=>s+c.hp,0);
+  BATTLE.enemyHpMax=BATTLE.enemyDeck.reduce((s,c)=>s+c.hp,0);
+  BATTLE.playerHand=[0,1,2].filter(i=>i<BATTLE.playerDeck.length);
+  BATTLE.selectedHandIdx=0;
+  BATTLE.turn='player';
+  BATTLE.log=[];
+  BATTLE.active=true;
+
+  document.getElementById('battle-prep').style.display='none';
+  document.getElementById('battle-active').style.display='block';
+
+  addLog(`⚔ BATTLE START! VS ${enemy.name}!`,'sys');
+  renderBattleUI();
+}
+
+function getTotalHp(deck){return deck.reduce((s,c)=>s+(c.currentHp>0?c.currentHp:0),0);}
+
+function renderBattleUI(){
+  const pc=BATTLE.playerDeck[BATTLE.playerActiveIdx];
+  const ec=BATTLE.enemyDeck[BATTLE.enemyActiveIdx];
+  const pHp=getTotalHp(BATTLE.playerDeck);
+  const eHp=getTotalHp(BATTLE.enemyDeck);
+
+  // Enemy
+  document.getElementById('enemy-name-label').textContent=BATTLE.enemy.name;
+  document.getElementById('enemy-hp-val').textContent=eHp+'/'+BATTLE.enemyHpMax;
+  const ePct=Math.max(0,eHp/BATTLE.enemyHpMax*100);
+  const eBar=document.getElementById('enemy-hp-bar');
+  eBar.style.width=ePct+'%';
+  eBar.className='battle-hp-fill'+(ePct<30?' low':'');
+  document.getElementById('enemy-art').textContent=ec?ec.emoji:'💀';
+  document.getElementById('enemy-card-name').textContent=ec?ec.name:'---';
+  document.getElementById('enemy-card-hp').textContent=ec?ec.currentHp:0;
+  document.getElementById('enemy-card-atk').textContent=ec?ec.atk:0;
+
+  // Player
+  const pPct=Math.max(0,pHp/BATTLE.playerHpMax*100);
+  document.getElementById('player-hp-val').textContent=pHp+'/'+BATTLE.playerHpMax;
+  const pBar=document.getElementById('player-hp-bar');
+  pBar.style.width=pPct+'%';
+  pBar.className='battle-hp-fill'+(pPct<30?' low':'');
+  document.getElementById('active-art').textContent=pc?pc.emoji:'-';
+  document.getElementById('active-card-name').textContent=pc?pc.name:'-';
+  document.getElementById('active-card-hp').textContent=pc?pc.currentHp:0;
+  document.getElementById('active-card-atk').textContent=pc?pc.atk:0;
+  document.getElementById('player-deck-left').textContent='HIDUP: '+BATTLE.playerDeck.filter(c=>c.currentHp>0).length+'/'+BATTLE.playerDeck.length;
+
+  // Hand
+  const hand=document.getElementById('battle-hand');
+  hand.innerHTML='';
+  BATTLE.playerHand.forEach((di,hi)=>{
+    const c=BATTLE.playerDeck[di];
+    if(!c)return;
+    const wrap=document.createElement('div');
+    wrap.className='battle-hand-card'+(hi===BATTLE.selectedHandIdx?' selected':'')+(c.currentHp<=0?' used':'');
+    wrap.innerHTML=buildCardHTML(c,true);
+    wrap.onclick=()=>{BATTLE.selectedHandIdx=hi;renderBattleUI();SFX.click()};
+    hand.appendChild(wrap);
+  });
+
+  // Buttons
+  const canAct=BATTLE.turn==='player'&&BATTLE.active;
+  document.getElementById('btn-attack').disabled=!canAct;
+  document.getElementById('btn-swap').disabled=!canAct;
+
+  // Auto Button Status
+  const btnAuto = document.getElementById('btn-auto');
+  if (btnAuto) {
+    if (BATTLE.isAuto) {
+      btnAuto.className = 'btn';
+      btnAuto.style.backgroundColor = 'var(--grn)';
+      btnAuto.style.color = 'var(--blk)';
+      btnAuto.innerHTML = '🤖 AUTO: ON';
+    } else {
+      btnAuto.className = 'btn ghost';
+      btnAuto.style.backgroundColor = 'transparent';
+      btnAuto.style.color = 'var(--yel)';
+      btnAuto.innerHTML = '🤖 AUTO: OFF';
+    }
+  }
+}
+
+function addLog(msg,cls=''){
+  const log=document.getElementById('battle-log');
+  const line=document.createElement('div');
+  line.className='log-line '+cls;
+  line.textContent=msg;
+  log.appendChild(line);
+  log.scrollTop=log.scrollHeight;
+  BATTLE.log.push(msg);
+}
+
+function calcDamage(attacker,defender){
+  let dmg=attacker.atk;
+  if(TYPE_ADV[attacker.type]===defender.type) dmg=Math.round(dmg*1.5);
+  if(TYPE_ADV[defender.type]===attacker.type) dmg=Math.round(dmg*0.65);
+  dmg=Math.round(dmg*(0.85+Math.random()*0.3));
+  return Math.max(1,dmg);
+}
+
+function getNextAliveEnemy(){
+  for(let i=0;i<BATTLE.enemyDeck.length;i++){
+    if(BATTLE.enemyDeck[i].currentHp>0)return i;
+  }
+  return -1;
+}
+function getNextAlivePlayer(){
+  for(let i=0;i<BATTLE.playerDeck.length;i++){
+    if(BATTLE.playerDeck[i].currentHp>0)return i;
+  }
+  return -1;
+}
+
+function playerAttack(){
+  if(BATTLE.turn!=='player'||!BATTLE.active)return;
+
+  if (BATTLE.isAuto) {
+    let validIdx = BATTLE.playerHand.findIndex(di => BATTLE.playerDeck[di] && BATTLE.playerDeck[di].currentHp > 0);
+    if(validIdx !== -1) BATTLE.selectedHandIdx = validIdx;
+  }
+
+  SFX.attack();
+  const si=BATTLE.selectedHandIdx;
+  const di=BATTLE.playerHand[si];
+  const pc=BATTLE.playerDeck[di];
+  const ec=BATTLE.enemyDeck[BATTLE.enemyActiveIdx];
+  if(!pc||!ec||pc.currentHp<=0){
+    toast('⚠ Pilih kartu yang valid!');
+    if(BATTLE.isAuto) BATTLE.isAuto = false; 
+    return;
+  }
+  
+  const dmg=calcDamage(pc,ec);
+  ec.currentHp=Math.max(0,ec.currentHp-dmg);
+  flash('#f44336');
+  dmgPopup(document.getElementById('enemy-field'),dmg);
+  document.getElementById('enemy-card-display').classList.add('shake');
+  setTimeout(()=>document.getElementById('enemy-card-display').classList.remove('shake'),400);
+  SFX.hit();
+  const adv=TYPE_ADV[pc.type]===ec.type?'⚡SUPER EFEKTIF!':TYPE_ADV[ec.type]===pc.type?'💧TIDAK EFEKTIF...':'';
+  addLog(`${pc.name} SERANG ${ec.name}: -${dmg} HP ${adv}`,'hit');
+  
+  if(ec.currentHp<=0){
+    addLog(`💀 ${ec.name} HANCUR!`,'sys');
+    const nextE=getNextAliveEnemy();
+    if(nextE===-1){endBattle(true);return;}
+    BATTLE.enemyActiveIdx=nextE;
+    addLog(`🔄 MUSUH GANTI KARTU: ${BATTLE.enemyDeck[nextE].name}`,'sys');
+  }
+  
+  if(BATTLE.playerDeck[BATTLE.playerActiveIdx].currentHp<=0){
+    const nextP=getNextAlivePlayer();
+    if(nextP===-1){endBattle(false);return;}
+    BATTLE.playerActiveIdx=nextP;
+  }
+  
+  updateHand(si);
+  BATTLE.turn='enemy';
+  renderBattleUI();
+  setTimeout(enemyTurn, 900);
+}
+
+function updateHand(usedIdx){
+  const used=BATTLE.playerHand[usedIdx];
+  const inHand=new Set(BATTLE.playerHand);
+  let newCard=-1;
+  for(let i=0;i<BATTLE.playerDeck.length;i++){
+    if(!inHand.has(i)&&BATTLE.playerDeck[i].currentHp>0){newCard=i;break;}
+  }
+  if(newCard!==-1)BATTLE.playerHand[usedIdx]=newCard;
+  BATTLE.playerActiveIdx=BATTLE.playerHand[BATTLE.selectedHandIdx]||BATTLE.playerActiveIdx;
+  if(BATTLE.playerDeck[BATTLE.playerActiveIdx].currentHp<=0){
+    const nextP=getNextAlivePlayer();
+    if(nextP>=0)BATTLE.playerActiveIdx=nextP;
+  }
+}
+
+function enemyTurn(){
+  if(!BATTLE.active)return;
+  const ec=BATTLE.enemyDeck[BATTLE.enemyActiveIdx];
+  let target=BATTLE.playerDeck[BATTLE.playerActiveIdx];
+  if(!target||target.currentHp<=0){
+    const ni=getNextAlivePlayer();
+    if(ni===-1){endBattle(false);return;}
+    BATTLE.playerActiveIdx=ni;target=BATTLE.playerDeck[ni];
+  }
+  const dmg=calcDamage(ec,target);
+  target.currentHp=Math.max(0,target.currentHp-dmg);
+  flash('#d500f9');
+  dmgPopup(document.getElementById('player-field'),dmg);
+  document.getElementById('active-card-display').classList.add('shake');
+  setTimeout(()=>document.getElementById('active-card-display').classList.remove('shake'),400);
+  SFX.hit();
+  const adv=TYPE_ADV[ec.type]===target.type?'⚡SUPER EFEKTIF!':TYPE_ADV[target.type]===ec.type?'💧TIDAK EFEKTIF...':'';
+  addLog(`${ec.name} SERANG ${target.name}: -${dmg} HP ${adv}`,'hit');
+  
+  if(target.currentHp<=0){
+    addLog(`💀 ${target.name} HANCUR!`,'sys');
+    const ni=getNextAlivePlayer();
+    if(ni===-1){endBattle(false);return;}
+    BATTLE.playerActiveIdx=ni;
+    const hi=BATTLE.playerHand.indexOf(BATTLE.playerHand.find((_,i)=>BATTLE.playerDeck[BATTLE.playerHand[i]]?.currentHp<=0));
+    if(hi>=0){
+      const inHand=new Set(BATTLE.playerHand);
+      for(let i=0;i<BATTLE.playerDeck.length;i++){
+        if(!inHand.has(i)&&BATTLE.playerDeck[i].currentHp>0){BATTLE.playerHand[hi]=i;break;}
+      }
+    }
+    BATTLE.selectedHandIdx=0;
+    addLog(`🔄 GANTI KE: ${BATTLE.playerDeck[ni].name}`,'sys');
+  }
+  BATTLE.turn='player';
+  renderBattleUI();
+
+  if (BATTLE.active && BATTLE.isAuto) {
+    autoBattleTimer = setTimeout(playerAttack, 1000);
+  }
+}
+
+function openSwapModal(){
+  if(BATTLE.isAuto) return toast('⚠ Matikan AUTO untuk ganti kartu manual.');
+
+  const alive=BATTLE.playerDeck.map((c,i)=>({c,i})).filter(x=>x.c.currentHp>0);
+  let html='<div class="modal-title">🔄 GANTI KARTU AKTIF</div>';
+  html+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px">';
+  alive.forEach(({c,i})=>{
+    html+=`<div onclick="swapActive(${i});closeModal()" style="cursor:pointer">${buildCardHTML(c,true)}</div>`;
+  });
+  html+='</div>';
+  document.getElementById('modal-content').innerHTML=html;
+  openModal();SFX.click();
+}
+
+function swapActive(idx){
+  BATTLE.playerActiveIdx=idx;
+  if(!BATTLE.playerHand.includes(idx)){
+    BATTLE.playerHand[BATTLE.selectedHandIdx]=idx;
+  }else{
+    BATTLE.selectedHandIdx=BATTLE.playerHand.indexOf(idx);
+  }
+  addLog(`🔄 GANTI KE: ${BATTLE.playerDeck[idx].name}`,'sys');
+  renderBattleUI();SFX.click();
+}
+
+function endBattle(playerWon){
+  BATTLE.active=false;
+  if(autoBattleTimer) clearTimeout(autoBattleTimer);
+
+  if(playerWon){
+    SFX.win();flash('#ffd600');
+    STATE.wins++;
+    const reward=BATTLE.enemy.reward;
+    STATE.scrap+=reward;
+    saveState();
+    addLog(`🏆 KAMU MENANG! +⚙${reward} SCRAP!`,'sys');
+    setTimeout(()=>{
+      openResultModal(true,reward);
+    },800);
+  }else{
+    SFX.lose();flash('#f44336');
+    STATE.losses++;
+    saveState();
+    addLog('💀 KAMU KALAH! COBA LAGI!','hit');
+    setTimeout(()=>{
+      openResultModal(false,0);
+    },800);
+  }
+}
+
+function openResultModal(won,reward){
+  document.getElementById('modal-content').innerHTML=`
+    <div class="modal-title" style="color:${won?'var(--yel)':'var(--red)'}">${won?'🏆 MENANG!':'💀 KALAH!'}</div>
+    <div style="font-size:.85rem;letter-spacing:.15em;color:var(--con2);margin-bottom:14px;text-transform:uppercase">
+      ${won?`MUSUH DIKALAHKAN!<br>DAPAT ⚙${reward} SCRAP!`:'DECK KAMU HANCUR!<br>LATIH LEBIH KERAS!'}
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn" onclick="closeModal();renderBattlePrep()">BATTLE LAGI</button>
+      <button class="btn ghost" onclick="closeModal();nav('gacha')">PULL KARTU</button>
+    </div>
+  `;
+  openModal();
+}
+
+// ── MODAL ────────────────────────────────────────────────────────
+function openModal(){document.getElementById('modal-overlay').classList.add('active')}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('active')}
+
+// ── RESET ────────────────────────────────────────────────────────
+function confirmReset(){
+  document.getElementById('modal-content').innerHTML=`
+    <div class="modal-title" style="color:var(--red)">⚠ RESET DATA?</div>
+    <div style="font-size:.7rem;letter-spacing:.15em;color:var(--con2);margin-bottom:16px;text-transform:uppercase">
+      SEMUA DATA AKAN TERHAPUS!<br>KARTU, SCRAP, DAN PROGRESS!
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn red" onclick="doReset()">✓ RESET</button>
+      <button class="btn ghost" onclick="closeModal()">✕ BATAL</button>
+    </div>
+  `;
+  openModal();
+}
+
+function doReset(){
+  STATE={scrap:10000,collection:[],deck:[],pity:0,wins:0,losses:0,totalPulls:0};
+  saveState();closeModal();nav('home');toast('🔄 DATA DIRESET!');
+}
+
+// ── INIT ──────────────────────────────────────────────────────────
+loadState();
+renderHome();
+
+// Start on home
+document.addEventListener('DOMContentLoaded',()=>{});
+</script>
+</body>
+</html>

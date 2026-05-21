@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>CONCRETE DASH — NEO-BRUTALIST RUNNER</title>
+  <style>
+    /* ============================================================
+       RESET & VARIABLES
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black:   #0a0a0a;
+      --yellow:  #ffd600;
+      --red:     #f44336;
+      --concrete:#555555;
+      --white:   #f0f0f0;
+      --shadow:  6px 6px 0px #ffd600;
+      --shadow-r:6px 6px 0px #f44336;
+    }
+
+    /* ============================================================
+       BODY / BACKGROUND — concrete grid texture
+    ============================================================ */
+    body {
+      background-color: var(--black);
+      background-image:
+        linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px),
+        linear-gradient(rgba(255,255,255,.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.015) 1px, transparent 1px);
+      background-size: 60px 60px, 60px 60px, 12px 12px, 12px 12px;
+      font-family: 'Impact', 'Arial Black', 'Arial', sans-serif;
+      color: var(--white);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding: 16px 8px 24px;
+      overflow-x: hidden;
+    }
+
+    /* ============================================================
+       TITLE HEADER
+    ============================================================ */
+    #header {
+      width: 100%;
+      max-width: 800px;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    #header h1 {
+      font-size: clamp(2.4rem, 8vw, 5rem);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--yellow);
+      text-shadow: 5px 5px 0 var(--red), 10px 10px 0 #000;
+      transform: skewX(-3deg);
+      display: inline-block;
+      line-height: 1;
+    }
+
+    #header p.tagline {
+      font-size: clamp(.65rem, 2.5vw, .95rem);
+      letter-spacing: .35em;
+      color: var(--concrete);
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* ============================================================
+       SCORE BAR & FULLSCREEN BTN
+    ============================================================ */
+    #scorebar {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 8px;
+    }
+
+    .score-box {
+      background: var(--black);
+      border: 4px solid var(--yellow);
+      padding: 6px 14px;
+      transform: skewX(-4deg);
+      box-shadow: 4px 4px 0 var(--yellow);
+      flex: 1;
+      text-align: center;
+    }
+
+    .score-box .label {
+      font-size: .55rem;
+      letter-spacing: .3em;
+      color: var(--concrete);
+      text-transform: uppercase;
+    }
+
+    .score-box .value {
+      font-size: clamp(1.1rem, 4vw, 1.8rem);
+      color: var(--yellow);
+      letter-spacing: .1em;
+    }
+
+    .score-box.hi { border-color: var(--red); box-shadow: 4px 4px 0 var(--red); }
+    .score-box.hi .value { color: var(--red); }
+
+    #speed-badge {
+      background: var(--red);
+      border: 4px solid var(--black);
+      color: var(--black);
+      font-size: .65rem;
+      letter-spacing: .25em;
+      padding: 6px 10px;
+      transform: skewX(-6deg);
+      box-shadow: 4px 4px 0 var(--yellow);
+      white-space: nowrap;
+    }
+
+    #fs-btn {
+      background: var(--black);
+      border: 4px solid var(--white);
+      color: var(--white);
+      font-size: 1.2rem;
+      padding: 6px 12px;
+      cursor: pointer;
+      transform: skewX(-4deg);
+      box-shadow: 4px 4px 0 var(--concrete);
+      transition: transform .05s, box-shadow .05s;
+    }
+    #fs-btn:active {
+      transform: skewX(-4deg) translate(4px,4px);
+      box-shadow: 0px 0px 0 var(--concrete);
+    }
+
+    /* ============================================================
+       CANVAS WRAPPER
+    ============================================================ */
+    #canvas-wrap {
+      width: 100%;
+      max-width: 800px;
+      border: 6px solid var(--yellow);
+      box-shadow: 8px 8px 0 var(--yellow), 16px 16px 0 var(--red);
+      position: relative;
+      background: #111;
+      overflow: hidden;
+      transition: all 0.2s;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    /* ============================================================
+       OVERLAY (start / game-over screens)
+    ============================================================ */
+    #overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(10,10,10,.88);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      z-index: 10;
+    }
+
+    #overlay.hidden { display: none; }
+
+    #overlay h2 {
+      font-size: clamp(1.8rem, 7vw, 3.5rem);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--yellow);
+      text-shadow: 4px 4px 0 var(--red);
+      transform: skewX(-3deg);
+      text-align: center;
+      padding: 0 12px;
+    }
+
+    #overlay .info-text {
+      font-size: clamp(.65rem, 2.5vw, .95rem);
+      letter-spacing: .2em;
+      color: var(--concrete);
+      text-align: center;
+      padding: 0 16px;
+      line-height: 1.7;
+      text-transform: uppercase;
+      font-family: 'Arial Black', sans-serif;
+      font-weight: 900;
+    }
+
+    #overlay .final-score {
+      font-size: clamp(1.1rem, 4vw, 2rem);
+      color: var(--white);
+      letter-spacing: .2em;
+    }
+
+    /* ============================================================
+       BUTTONS
+    ============================================================ */
+    .btn {
+      display: inline-block;
+      background: var(--yellow);
+      color: var(--black);
+      border: 5px solid var(--black);
+      padding: 10px 28px;
+      font-family: 'Impact', 'Arial Black', sans-serif;
+      font-size: clamp(1rem, 3.5vw, 1.4rem);
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 6px 6px 0 var(--red);
+      transform: skewX(-4deg);
+      transition: transform .07s, box-shadow .07s;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn:hover { transform: skewX(-4deg) translate(2px,2px); box-shadow: 4px 4px 0 var(--red); }
+    .btn:active { transform: skewX(-4deg) translate(6px,6px); box-shadow: 0 0 0 var(--red); }
+
+    .btn.red { background: var(--red); box-shadow: 6px 6px 0 var(--yellow); }
+    .btn.red:hover { box-shadow: 4px 4px 0 var(--yellow); }
+    .btn.red:active { box-shadow: 0 0 0 var(--yellow); }
+
+    /* ============================================================
+       CONTROL BAR (mobile touch buttons)
+    ============================================================ */
+    #controls {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .ctrl-btn {
+      flex: 1;
+      background: var(--concrete);
+      border: 4px solid var(--yellow);
+      color: var(--yellow);
+      font-family: 'Impact', 'Arial Black', sans-serif;
+      font-size: clamp(1rem, 4vw, 1.5rem);
+      letter-spacing: .15em;
+      padding: 12px 0;
+      cursor: pointer;
+      box-shadow: 4px 4px 0 var(--black);
+      transform: skewX(-3deg);
+      text-align: center;
+      text-transform: uppercase;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .ctrl-btn:active { transform: skewX(-3deg) translate(4px,4px); box-shadow: 0 0 0 var(--black); }
+
+    /* ============================================================
+       INSTRUCTIONS STRIP
+    ============================================================ */
+    #instructions {
+      width: 100%;
+      max-width: 800px;
+      margin-top: 10px;
+      border: 3px solid var(--concrete);
+      padding: 8px 14px;
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    #instructions span {
+      font-family: 'Arial Black', sans-serif;
+      font-size: .62rem;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: var(--concrete);
+    }
+
+    #instructions span b { color: var(--yellow); }
+
+    /* ============================================================
+       FLASH EFFECT
+    ============================================================ */
+    #flash {
+      position: fixed; inset: 0;
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0;
+      background: var(--red);
+      transition: opacity .05s;
+    }
+
+    /* ============================================================
+       FULLSCREEN MODE STYLES
+    ============================================================ */
+    :fullscreen { background-color: var(--black); padding: 0; justify-content: center; }
+    :fullscreen #header { display: none; }
+    :fullscreen #instructions { display: none; }
+    :fullscreen #scorebar { max-width: 100%; padding: 10px 2vw; }
+    :fullscreen #controls { max-width: 100%; padding: 0 2vw 20px; }
+    
+    :fullscreen #canvas-wrap {
+      max-width: 100%;
+      width: 100vw;
+      flex: 1; /* Biarkan kanvas mengambil ruang kosong */
+      display: flex;
+      border-left: none;
+      border-right: none;
+      box-shadow: none;
+      margin-bottom: 10px;
+    }
+    :fullscreen canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: contain; /* Mengunci rasio agar tidak gepeng */
+    }
+
+    /* Webkit fallbacks untuk fullscreen */
+    :-webkit-full-screen { background-color: var(--black); padding: 0; justify-content: center; }
+    :-webkit-full-screen #header { display: none; }
+    :-webkit-full-screen #instructions { display: none; }
+    :-webkit-full-screen #scorebar { max-width: 100%; padding: 10px 2vw; }
+    :-webkit-full-screen #controls { max-width: 100%; padding: 0 2vw 20px; }
+    :-webkit-full-screen #canvas-wrap {
+      max-width: 100%; width: 100vw; flex: 1; display: flex; border-left: none; border-right: none; box-shadow: none; margin-bottom: 10px;
+    }
+    :-webkit-full-screen canvas { width: 100%; height: 100%; object-fit: contain; }
+  </style>
+</head>
+<body>
+
+<div id="flash"></div>
+
+<div id="header">
+  <h1>CONCRETE DASH</h1>
+  <p class="tagline">Neo-Brutalist Endless Runner · Survive the Grid</p>
+</div>
+
+<div id="scorebar">
+  <div class="score-box">
+    <div class="label">Score</div>
+    <div class="value" id="score-display">0</div>
+  </div>
+  <div id="speed-badge">SPD <span id="speed-display">1</span>X</div>
+  <div class="score-box hi">
+    <div class="label">Best</div>
+    <div class="value" id="hi-display">0</div>
+  </div>
+  <button id="fs-btn" onclick="toggleFullScreen()" title="Toggle Fullscreen">⛶</button>
+</div>
+
+<div id="canvas-wrap">
+  <canvas id="gameCanvas" width="800" height="280"></canvas>
+
+  <div id="overlay">
+    <h2 id="overlay-title">CONCRETE DASH</h2>
+    <div class="info-text" id="overlay-body">
+      Lompat hindari rintangan.<br>
+      Makin jauh, makin brutal.<br><br>
+      <b style="color:var(--yellow)">SPACE / ↑ / TAP</b> — Lompat<br>
+      <b style="color:var(--yellow)">SHIFT / ↓</b> — Tiarap
+    </div>
+    <div class="final-score hidden" id="final-score"></div>
+    <button class="btn" id="start-btn" onclick="startGame()">▶ MULAI</button>
+  </div>
+</div>
+
+<div id="controls">
+  <button class="ctrl-btn" id="btn-duck" ontouchstart="touchDuck(true)" ontouchend="touchDuck(false)">⬇ TIARAP</button>
+  <button class="ctrl-btn" id="btn-jump" ontouchstart="touchJump()">⬆ LOMPAT</button>
+</div>
+
+<div id="instructions">
+  <span><b>SPACE / ↑</b> Lompat</span>
+  <span><b>SHIFT / ↓</b> Tiarap</span>
+  <span><b>Double Tap</b> Lompat Ganda</span>
+  <span><b>P</b> Pause</span>
+  <span><b>F</b> Fullscreen</span>
+</div>
+
+<script>
+/* ================================================================
+   CONCRETE DASH — Neo-Brutalist Endless Runner
+   Single-file HTML game with Web Audio API sound effects
+================================================================ */
+
+// ── Canvas Setup ─────────────────────────────────────────────────
+const canvas = document.getElementById('gameCanvas');
+const ctx    = canvas.getContext('2d');
+const W = canvas.width;   // 800
+const H = canvas.height;  // 280
+
+// ── DOM refs ─────────────────────────────────────────────────────
+const overlay      = document.getElementById('overlay');
+const overlayTitle = document.getElementById('overlay-title');
+const overlayBody  = document.getElementById('overlay-body');
+const finalScore   = document.getElementById('final-score');
+const startBtn     = document.getElementById('start-btn');
+const scoreDisplay = document.getElementById('score-display');
+const hiDisplay    = document.getElementById('hi-display');
+const speedDisplay = document.getElementById('speed-display');
+const flashEl      = document.getElementById('flash');
+
+// ── Fullscreen Toggle ─────────────────────────────────────────────
+function toggleFullScreen() {
+  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen();
+    } else if (document.documentElement.webkitRequestFullscreen) { /* Safari */
+      document.documentElement.webkitRequestFullscreen();
+    }
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) { /* Safari */
+      document.webkitExitFullscreen();
+    }
+  }
+}
+
+// ── Audio Context ─────────────────────────────────────────────────
+let audioCtx = null;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+/** Generic tone beep */
+function beep(freq, type, duration, volume, decay) {
+  try {
+    const ac  = getAudioCtx();
+    const osc = ac.createOscillator();
+    const gain= ac.createGain();
+    osc.connect(gain); gain.connect(ac.destination);
+    osc.type = type || 'square';
+    osc.frequency.setValueAtTime(freq, ac.currentTime);
+    gain.gain.setValueAtTime(volume || 0.3, ac.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + (decay || duration));
+    osc.start(); osc.stop(ac.currentTime + duration);
+  } catch(e) {}
+}
+
+/** Noise burst for industrial feel */
+function noiseBurst(duration, volume) {
+  try {
+    const ac   = getAudioCtx();
+    const buf  = ac.createBuffer(1, ac.sampleRate * duration, ac.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    const src  = ac.createBufferSource();
+    const gain = ac.createGain();
+    src.buffer = buf;
+    src.connect(gain); gain.connect(ac.destination);
+    gain.gain.setValueAtTime(volume, ac.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + duration);
+    src.start();
+  } catch(e) {}
+}
+
+// Sound effects
+const SFX = {
+  jump  : () => { beep(280, 'square', .12, .25, .10); beep(420, 'square', .08, .15, .07); },
+  djump : () => { beep(520, 'square', .12, .3,  .09); beep(680, 'sawtooth',.08,.2,.07); },
+  land  : () => { noiseBurst(.05, .18); beep(90, 'square', .06, .2, .05); },
+  duck  : () => { beep(140, 'sawtooth', .07, .15, .06); },
+  score : () => { beep(880, 'square', .05, .12, .04); },
+  speed : () => { beep(660,'square',.04,.2,.03); beep(880,'square',.06,.25,.05); beep(1100,'square',.08,.2,.06); },
+  hit   : () => { noiseBurst(.12, .4); beep(55,'sawtooth',.2,.35,.18); },
+  gameover: () => {
+    beep(220,'sawtooth',.25,.3,.22);
+    setTimeout(()=>beep(150,'sawtooth',.3,.3,.28),180);
+    setTimeout(()=>beep(100,'sawtooth',.45,.35,.4),380);
+    noiseBurst(.5,.25);
+  },
+  start : () => { beep(440,'square',.06,.2,.05); beep(550,'square',.06,.2,.05); beep(660,'square',.1,.25,.08); }
+};
+
+// ── Game State ────────────────────────────────────────────────────
+let state       = 'idle'; // idle | playing | paused | dead
+let score       = 0;
+let hiScore     = parseInt(localStorage.getItem('cd_hi') || '0');
+let frameCount  = 0;
+let gameSpeed   = 5;        // pixels/frame base
+let speedLevel  = 1;
+let lastSpeed   = 1;
+let raf         = null;
+
+// ── Player ────────────────────────────────────────────────────────
+const GROUND_Y  = H - 48;   // ground line y
+const PLAYER_W  = 34;
+const PLAYER_H  = 52;
+const DUCK_H    = 28;
+
+const player = {
+  x: 90,
+  y: GROUND_Y - PLAYER_H,
+  w: PLAYER_W,
+  h: PLAYER_H,
+  vy: 0,
+  jumps: 0,
+  maxJumps: 2,
+  ducking: false,
+  onGround: false,
+  // animation
+  legPhase: 0,
+};
+
+function playerRect() {
+  return {
+    x: player.x + 4,
+    y: player.y + (player.ducking ? PLAYER_H - DUCK_H : 0) + 4,
+    w: player.w - 8,
+    h: (player.ducking ? DUCK_H : player.h) - 8
+  };
+}
+
+// ── Obstacles ─────────────────────────────────────────────────────
+let obstacles    = [];
+let obstacleCooldown = 0;
+const OBS_TYPES  = ['block','spike','bar','double'];
+
+function spawnObstacle() {
+  const type = OBS_TYPES[Math.floor(Math.random() * OBS_TYPES.length)];
+  let w, h, y;
+  switch(type) {
+    case 'block':
+      w = 28 + Math.random()*20; h = 40 + Math.random()*28;
+      y = GROUND_Y - h; break;
+    case 'spike':
+      w = 22; h = 48;
+      y = GROUND_Y - h; break;
+    case 'bar':   // low bar — player must jump over
+      w = 60 + Math.random()*40; h = 18;
+      y = GROUND_Y - h; break;
+    case 'double': // two blocks
+      w = 24; h = 34 + Math.random()*20;
+      y = GROUND_Y - h; break;
+  }
+  const obs = { x: W + 10, y, w, h, type, counted: false };
+  if (type === 'double') {
+    // spawn a second block 60-90px behind
+    obstacles.push({ x: W + 10 + 65 + Math.random()*30, y, w, h, type:'block', counted:false });
+  }
+  obstacles.push(obs);
+}
+
+// ── Coins ─────────────────────────────────────────────────────────
+let coins = [];
+let coinCooldown = 60;
+
+function spawnCoin() {
+  const heights = [GROUND_Y - 30, GROUND_Y - 80, GROUND_Y - 140];
+  coins.push({
+    x: W + 10,
+    y: heights[Math.floor(Math.random() * heights.length)],
+    r: 10,
+    collected: false,
+    anim: 0
+  });
+}
+
+// ── Particles ─────────────────────────────────────────────────────
+let particles = [];
+
+function spawnParticles(x, y, color, count) {
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x, y,
+      vx: (Math.random() - .5) * 6,
+      vy: -(Math.random() * 5 + 1),
+      life: 1,
+      decay: .04 + Math.random()*.04,
+      r: 3 + Math.random() * 5,
+      color
+    });
+  }
+}
+
+// ── Background Layers (parallax) ──────────────────────────────────
+const bgLayers = [
+  { rects: initBgRects(4, .25), speed: .2, color: '#1a1a1a' },
+  { rects: initBgRects(6, .5),  speed: .5, color: '#222222' },
+  { rects: initBgRects(8, .9),  speed: .9, color: '#2a2a2a' },
+];
+
+function initBgRects(count, scale) {
+  const arr = [];
+  for (let i = 0; i < count; i++) {
+    arr.push({
+      x: Math.random() * W,
+      y: Math.random() * (H - 60),
+      w: 20 + Math.random() * 80 * scale,
+      h: 10 + Math.random() * 60 * scale,
+    });
+  }
+  return arr;
+}
+
+// ── Ground segments (animated) ────────────────────────────────────
+let groundX = 0;
+
+// ── Input Handling ────────────────────────────────────────────────
+let keys = {};
+
+document.addEventListener('keydown', e => {
+  if (state === 'idle' || state === 'dead') {
+    if (['Space','ArrowUp','Enter'].includes(e.code)) startGame();
+    return;
+  }
+  if (e.code === 'KeyP') togglePause();
+  if (e.code === 'KeyF') toggleFullScreen();
+  if (state !== 'playing') return;
+  if ((e.code === 'Space' || e.code === 'ArrowUp') && !keys[e.code]) {
+    doJump();
+  }
+  if (e.code === 'ArrowDown' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+    doDuck(true);
+  }
+  keys[e.code] = true;
+  e.preventDefault();
+});
+
+document.addEventListener('keyup', e => {
+  keys[e.code] = false;
+  if (e.code === 'ArrowDown' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+    doDuck(false);
+  }
+});
+
+// Touch controls
+function touchJump() { if (state === 'playing') doJump(); else if (state !== 'playing') startGame(); }
+function touchDuck(on) { if (state === 'playing') doDuck(on); }
+
+// Swipe detection
+let touchStartY = 0;
+canvas.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, {passive:true});
+canvas.addEventListener('touchend', e => {
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  if (dy > 30) doDuck(false); // swipe down momentary
+  else touchJump();
+}, {passive:true});
+
+function doJump() {
+  if (player.jumps < player.maxJumps) {
+    player.vy = player.jumps === 0 ? -13.5 : -11;
+    player.jumps++;
+    player.ducking = false;
+    if (player.jumps === 1) SFX.jump();
+    else SFX.djump();
+  }
+}
+
+function doDuck(on) {
+  if (on && !player.ducking && player.onGround) { player.ducking = true; SFX.duck(); }
+  if (!on) player.ducking = false;
+}
+
+// ── Game Functions ────────────────────────────────────────────────
+function startGame() {
+  // Reset state
+  score       = 0;
+  frameCount  = 0;
+  gameSpeed   = 5;
+  speedLevel  = 1;
+  lastSpeed   = 1;
+  obstacles   = [];
+  coins       = [];
+  particles   = [];
+  obstacleCooldown = 80;
+  coinCooldown= 60;
+  player.x    = 90;
+  player.y    = GROUND_Y - PLAYER_H;
+  player.vy   = 0;
+  player.jumps= 0;
+  player.ducking = false;
+  player.onGround = false;
+  player.legPhase = 0;
+  groundX     = 0;
+
+  // Background rects reset
+  bgLayers.forEach(l => l.rects = initBgRects(l.rects.length, l.speed));
+
+  state = 'playing';
+  overlay.classList.add('hidden');
+  SFX.start();
+  if (raf) cancelAnimationFrame(raf);
+  loop();
+}
+
+function gameOver() {
+  state = 'dead';
+  SFX.hit();
+  flashScreen();
+  spawnParticles(player.x + player.w/2, player.y + player.h/2, '#f44336', 18);
+
+  if (score > hiScore) {
+    hiScore = score;
+    localStorage.setItem('cd_hi', hiScore);
+  }
+  hiDisplay.textContent = hiScore;
+
+  setTimeout(() => {
+    SFX.gameover();
+    overlayTitle.textContent = 'GAME OVER';
+    overlayBody.textContent  = '';
+    finalScore.textContent   = `SCORE: ${score}  |  BEST: ${hiScore}`;
+    finalScore.classList.remove('hidden');
+    startBtn.textContent     = '↺ RESTART';
+    overlay.classList.remove('hidden');
+  }, 600);
+}
+
+function togglePause() {
+  if (state === 'playing') { state = 'paused'; }
+  else if (state === 'paused') { state = 'playing'; loop(); }
+}
+
+function flashScreen() {
+  flashEl.style.opacity = '.55';
+  setTimeout(() => flashEl.style.opacity = '0', 90);
+}
+
+// ── Collision (AABB) ──────────────────────────────────────────────
+function rectsOverlap(a, b) {
+  return a.x < b.x + b.w && a.x + a.w > b.x &&
+         a.y < b.y + b.h && a.y + a.h > b.y;
+}
+
+// ── Main Loop ─────────────────────────────────────────────────────
+function loop() {
+  if (state !== 'playing') return;
+  update();
+  render();
+  raf = requestAnimationFrame(loop);
+}
+
+function update() {
+  frameCount++;
+
+  // ── Score & Speed ──────────────────────────────────────────────
+  if (frameCount % 6 === 0) {
+    score++;
+    scoreDisplay.textContent = score;
+    if (score % 5 === 0) SFX.score();
+  }
+
+  // Speed increases every 200 points
+  speedLevel  = 1 + Math.floor(score / 200) * 0.4;
+  gameSpeed   = 5 + (speedLevel - 1) * 2.2;
+  if (speedLevel !== lastSpeed) {
+    lastSpeed = speedLevel;
+    SFX.speed();
+    flashScreen();
+  }
+  speedDisplay.textContent = speedLevel.toFixed(1).replace('.0','');
+
+  // ── Player Physics ─────────────────────────────────────────────
+  const gravity = 0.62;
+  player.vy += gravity;
+  player.y  += player.vy;
+
+  // Ground collision
+  const groundLine = player.ducking ? GROUND_Y - DUCK_H : GROUND_Y - PLAYER_H;
+  if (player.y >= groundLine) {
+    if (!player.onGround) SFX.land();
+    player.y      = groundLine;
+    player.vy     = 0;
+    player.jumps  = 0;
+    player.onGround = true;
+  } else {
+    player.onGround = false;
+  }
+
+  // Leg animation while on ground
+  if (player.onGround && !player.ducking) player.legPhase += 0.25;
+
+  // ── Obstacles ──────────────────────────────────────────────────
+  obstacleCooldown--;
+  const minGap = Math.max(55, 110 - score * 0.05);
+  if (obstacleCooldown <= 0) {
+    spawnObstacle();
+    obstacleCooldown = minGap + Math.random() * 70;
+  }
+
+  const pr = playerRect();
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    const o = obstacles[i];
+    o.x -= gameSpeed;
+
+    // Check collision
+    const or = { x: o.x + 3, y: o.y + 3, w: o.w - 6, h: o.h - 6 };
+    if (rectsOverlap(pr, or)) { gameOver(); return; }
+
+    // Score past obstacle
+    if (!o.counted && o.x + o.w < player.x) {
+      o.counted = true;
+    }
+
+    if (o.x + o.w < -10) obstacles.splice(i, 1);
+  }
+
+  // ── Coins ──────────────────────────────────────────────────────
+  coinCooldown--;
+  if (coinCooldown <= 0) {
+    spawnCoin();
+    coinCooldown = 70 + Math.random() * 60;
+  }
+
+  for (let i = coins.length - 1; i >= 0; i--) {
+    const c = coins[i];
+    c.x   -= gameSpeed * 0.95;
+    c.anim = (c.anim + .07) % (Math.PI * 2);
+
+    if (!c.collected) {
+      const cr = { x: c.x - c.r, y: c.y - c.r, w: c.r*2, h: c.r*2 };
+      if (rectsOverlap(pr, cr)) {
+        c.collected = true;
+        score += 10;
+        scoreDisplay.textContent = score;
+        spawnParticles(c.x, c.y, '#ffd600', 8);
+        beep(1320, 'square', .08, .2, .06);
+      }
+    }
+    if (c.x < -20 || c.collected) coins.splice(i, 1);
+  }
+
+  // ── Particles ──────────────────────────────────────────────────
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x   += p.vx;
+    p.y   += p.vy;
+    p.vy  += 0.3;
+    p.life -= p.decay;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+
+  // ── Background Parallax ────────────────────────────────────────
+  bgLayers.forEach(layer => {
+    layer.rects.forEach(r => {
+      r.x -= gameSpeed * layer.speed;
+      if (r.x + r.w < 0) {
+        r.x = W + 5;
+        r.y = Math.random() * (H - 80);
+      }
+    });
+  });
+
+  // ── Ground offset ──────────────────────────────────────────────
+  groundX = (groundX - gameSpeed) % 40;
+}
+
+// ── Render ────────────────────────────────────────────────────────
+function render() {
+  // Sky
+  ctx.fillStyle = '#0d0d0d';
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid overlay
+  ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += 30) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for (let y = 0; y < H; y += 30) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+  // Background parallax buildings
+  bgLayers.forEach(layer => {
+    ctx.fillStyle = layer.color;
+    layer.rects.forEach(r => {
+      ctx.fillRect(r.x, r.y, r.w, r.h);
+      // windows
+      ctx.fillStyle = 'rgba(255,214,0,.07)';
+      for (let wx = r.x+4; wx < r.x+r.w-6; wx += 10) {
+        for (let wy = r.y+4; wy < r.y+r.h-6; wy += 10) {
+          if (Math.random() > .6) ctx.fillRect(wx, wy, 5, 5);
+        }
+      }
+      ctx.fillStyle = layer.color;
+    });
+  });
+
+  // Ground
+  ctx.fillStyle = '#333';
+  ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
+
+  // Ground stripes (moving)
+  ctx.fillStyle = '#444';
+  for (let x = groundX; x < W; x += 40) {
+    ctx.fillRect(x, GROUND_Y, 20, 4);
+  }
+  // Ground border line
+  ctx.fillStyle = '#ffd600';
+  ctx.fillRect(0, GROUND_Y - 3, W, 4);
+  // Ground shadow
+  ctx.fillStyle = 'rgba(0,0,0,.5)';
+  ctx.fillRect(0, GROUND_Y + 1, W, 8);
+
+  // ── Coins ──────────────────────────────────────────────────────
+  coins.forEach(c => {
+    const scale = 1 + Math.sin(c.anim) * .12;
+    ctx.save();
+    ctx.translate(c.x, c.y);
+    ctx.scale(scale, scale);
+    ctx.fillStyle = '#ffd600';
+    ctx.strokeStyle = '#0a0a0a';
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(0, 0, c.r, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#0a0a0a';
+    ctx.font = 'bold 10px Impact';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('$', 0, 1);
+    ctx.restore();
+  });
+
+  // ── Obstacles ──────────────────────────────────────────────────
+  obstacles.forEach(o => drawObstacle(o));
+
+  // ── Player ─────────────────────────────────────────────────────
+  drawPlayer();
+
+  // ── Particles ──────────────────────────────────────────────────
+  particles.forEach(p => {
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle   = p.color;
+    ctx.fillRect(p.x - p.r/2, p.y - p.r/2, p.r, p.r);
+  });
+  ctx.globalAlpha = 1;
+
+  // ── Pause Overlay ──────────────────────────────────────────────
+  if (state === 'paused') {
+    ctx.fillStyle = 'rgba(0,0,0,.7)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#ffd600';
+    ctx.font      = 'bold 52px Impact';
+    ctx.letterSpacing = '8px';
+    ctx.textAlign = 'center';
+    ctx.fillText('PAUSED', W/2, H/2 - 10);
+    ctx.font  = '16px Impact';
+    ctx.fillStyle = '#555';
+    ctx.fillText('PRESS P TO CONTINUE', W/2, H/2 + 24);
+    ctx.letterSpacing = '0px';
+  }
+}
+
+function drawObstacle(o) {
+  ctx.save();
+  switch(o.type) {
+    case 'block':
+      // Shadow
+      ctx.fillStyle = 'rgba(244,67,54,.35)';
+      ctx.fillRect(o.x + 5, o.y + 5, o.w, o.h);
+      // Body
+      ctx.fillStyle = '#f44336';
+      ctx.fillRect(o.x, o.y, o.w, o.h);
+      // Border
+      ctx.strokeStyle = '#0a0a0a';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(o.x, o.y, o.w, o.h);
+      // Highlight
+      ctx.fillStyle = 'rgba(255,255,255,.15)';
+      ctx.fillRect(o.x + 3, o.y + 3, o.w - 6, 6);
+      // X mark
+      ctx.strokeStyle = '#0a0a0a';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(o.x+6, o.y+6); ctx.lineTo(o.x+o.w-6, o.y+o.h-6);
+      ctx.moveTo(o.x+o.w-6, o.y+6); ctx.lineTo(o.x+6, o.y+o.h-6);
+      ctx.stroke();
+      break;
+
+    case 'spike':
+      // Triangle spike
+      ctx.fillStyle = 'rgba(85,85,85,.4)';
+      ctx.beginPath();
+      ctx.moveTo(o.x + 5, o.y + o.h + 5);
+      ctx.lineTo(o.x + o.w/2 + 5, o.y + 5);
+      ctx.lineTo(o.x + o.w + 5, o.y + o.h + 5);
+      ctx.fill();
+      ctx.fillStyle = '#555555';
+      ctx.beginPath();
+      ctx.moveTo(o.x, o.y + o.h);
+      ctx.lineTo(o.x + o.w/2, o.y);
+      ctx.lineTo(o.x + o.w, o.y + o.h);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#ffd600';
+      ctx.lineWidth   = 2.5;
+      ctx.stroke();
+      break;
+
+    case 'bar':
+      ctx.fillStyle = 'rgba(255,214,0,.2)';
+      ctx.fillRect(o.x + 4, o.y + 4, o.w, o.h);
+      ctx.fillStyle = '#ffd600';
+      ctx.fillRect(o.x, o.y, o.w, o.h);
+      ctx.strokeStyle = '#0a0a0a';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(o.x, o.y, o.w, o.h);
+      // Hazard stripes
+      const stripeW = 14;
+      ctx.save();
+      ctx.clipRect ? ctx.clipRect(o.x, o.y, o.w, o.h) : (() => {
+        ctx.beginPath(); ctx.rect(o.x, o.y, o.w, o.h); ctx.clip();
+      })();
+      ctx.fillStyle = '#0a0a0a';
+      for (let sx = o.x - o.h; sx < o.x + o.w + o.h; sx += stripeW * 2) {
+        ctx.beginPath();
+        ctx.moveTo(sx, o.y + o.h);
+        ctx.lineTo(sx + o.h, o.y);
+        ctx.lineTo(sx + o.h + stripeW, o.y);
+        ctx.lineTo(sx + stripeW, o.y + o.h);
+        ctx.closePath(); ctx.fill();
+      }
+      ctx.restore();
+      break;
+
+    default: // fallback
+      ctx.fillStyle = '#f44336';
+      ctx.fillRect(o.x, o.y, o.w, o.h);
+  }
+  ctx.restore();
+}
+
+function drawPlayer() {
+  const px = player.x;
+  const ph = player.ducking ? DUCK_H : PLAYER_H;
+  const py = player.ducking ? GROUND_Y - DUCK_H : player.y;
+  const airborne = !player.onGround;
+
+  ctx.save();
+
+  // Drop shadow
+  ctx.fillStyle = 'rgba(0,0,0,.4)';
+  ctx.beginPath();
+  ctx.ellipse(px + PLAYER_W/2, GROUND_Y + 3, PLAYER_W/2 * (player.ducking?.9:.7), 5, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  if (player.ducking) {
+    // Crouched form
+    ctx.fillStyle = '#ffd600';
+    ctx.fillRect(px, py, PLAYER_W, DUCK_H);
+    ctx.strokeStyle = '#0a0a0a';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(px, py, PLAYER_W, DUCK_H);
+    // Eyes
+    ctx.fillStyle = '#0a0a0a';
+    ctx.fillRect(px + PLAYER_W - 10, py + 6, 6, 6);
+    // Mouth/grill
+    ctx.fillStyle = '#0a0a0a';
+    for (let g = 0; g < 3; g++) ctx.fillRect(px + 4 + g*6, py + DUCK_H - 7, 4, 4);
+  } else {
+    // Body
+    ctx.fillStyle = '#ffd600';
+    ctx.fillRect(px, py + 14, PLAYER_W, ph - 14);
+
+    // Head
+    ctx.fillStyle = '#ffd600';
+    ctx.fillRect(px + 2, py, PLAYER_W - 2, 18);
+
+    // Border
+    ctx.strokeStyle = '#0a0a0a';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(px + 2, py, PLAYER_W - 2, 18);
+    ctx.strokeRect(px, py + 14, PLAYER_W, ph - 14);
+
+    // Eyes (visor style)
+    ctx.fillStyle = '#0a0a0a';
+    ctx.fillRect(px + PLAYER_W - 12, py + 5, 8, 6);
+    ctx.fillStyle = '#f44336';
+    ctx.fillRect(px + PLAYER_W - 10, py + 7, 4, 3);
+
+    // Legs (animated)
+    if (!airborne) {
+      const legSwing = Math.sin(player.legPhase) * 8;
+      ctx.fillStyle = '#555';
+      // Left leg
+      ctx.fillRect(px + 3,  py + ph - 14 + legSwing, 10, 14 - legSwing);
+      // Right leg
+      ctx.fillRect(px + 17, py + ph - 14 - legSwing, 10, 14 + legSwing);
+    } else {
+      // Tucked legs
+      ctx.fillStyle = '#555';
+      ctx.fillRect(px + 4, py + ph - 10, 10, 10);
+      ctx.fillRect(px + 18, py + ph - 10, 10, 10);
+    }
+
+    // Arm/jet pack detail
+    ctx.fillStyle = '#f44336';
+    ctx.fillRect(px - 4, py + 18, 6, 12);
+    ctx.strokeStyle = '#0a0a0a';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(px - 4, py + 18, 6, 12);
+
+    // Jump boost trail
+    if (airborne && player.vy < -4) {
+      ctx.fillStyle = 'rgba(255,214,0,.5)';
+      ctx.fillRect(px + 5, py + ph, 8, 10);
+      ctx.fillStyle = 'rgba(244,67,54,.4)';
+      ctx.fillRect(px + 15, py + ph, 8, 14);
+    }
+  }
+
+  ctx.restore();
+}
+
+// ── Init ──────────────────────────────────────────────────────────
+hiDisplay.textContent = hiScore;
+
+// Draw static intro frame
+(function initRender() {
+  ctx.fillStyle = '#0d0d0d';
+  ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += 30) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for (let y = 0; y < H; y += 30) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+  ctx.fillStyle = '#333';
+  ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
+  ctx.fillStyle = '#ffd600';
+  ctx.fillRect(0, GROUND_Y - 3, W, 4);
+  drawPlayer();
+})();
+</script>
+</body>
+</html>
