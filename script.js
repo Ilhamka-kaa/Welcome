@@ -694,6 +694,11 @@ function openGameModal(gameFile, gameTitle) {
   // Show modal
   modal.classList.add('active');
   document.body.style.overflow = 'hidden';
+  
+  // Hide custom cursor and show default cursor for game
+  cursorEl.style.display = 'none';
+  cursorRingEl.style.display = 'none';
+  document.body.style.cursor = 'auto';
 }
 
 /**
@@ -704,6 +709,13 @@ function closeGameModal() {
   modal.classList.remove('active');
   document.getElementById('gameModalContent').innerHTML = '';
   document.body.style.overflow = '';
+  
+  // Restore custom cursor
+  if (!('ontouchstart' in window)) {
+    cursorEl.style.display = 'block';
+    cursorRingEl.style.display = 'block';
+    document.body.style.cursor = 'none';
+  }
 }
 
 /**
