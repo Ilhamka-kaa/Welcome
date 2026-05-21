@@ -1,47 +1,85 @@
+<!-- Page 2: Arcade — Neo-Brutalism Premium -->
 <div class="page-dimmer"></div>
 <div class="page-shine"></div>
+
+<!-- Decorative Overlays -->
+<div class="brutal-noise"></div>
+<div class="brutal-scanline"></div>
+
+<!-- Industrial Corner Brackets (Red) -->
+<div class="industrial-corner tl"></div>
+<div class="industrial-corner tr"></div>
+<div class="industrial-corner bl"></div>
+<div class="industrial-corner br"></div>
+
 <div class="page-content">
   <div class="corner-tag">// ARCADE</div>
-  
+
+  <!-- Warning Stripe — Top -->
+  <div class="warning-stripe red" style="margin-bottom:1.5rem;"></div>
+
   <div style="width:100%; display:flex; flex-direction:column;">
-    <p class="eyebrow">▲ PLAYABLE EXPERIMENTS</p>
+    <!-- Status Indicator -->
+    <div class="status-indicator" style="border-color: rgba(244,67,54,.3); background: rgba(244,67,54,.06); color: var(--brutal-red);">
+      <div class="status-dot" style="background: var(--brutal-red); box-shadow: 0 0 6px var(--brutal-red);"></div>
+      <span>ARCADE.MODE: ACTIVE</span>
+    </div>
+
+    <p class="eyebrow">
+      <span class="eyebrow-badge">▲ PLAYABLE EXPERIMENTS</span>
+    </p>
     <h2 style="margin-bottom:0.5rem;">NEO-BRUTALIST<br/>ARCADE</h2>
-    <p class="tagline" style="margin-bottom:2.5rem;">Experimental game projects. Click to play fullscreen.</p>
-    
+    <p class="tagline" style="margin-bottom:2rem;">Experimental game projects. Click to play fullscreen. No mercy.</p>
+
+    <!-- Hazard Tape Separator -->
+    <div class="hazard-tape" style="margin-top:0; margin-bottom:1.2rem;">
+      <span>◆ SELECT GAME ◆</span>
+    </div>
+
     <div class="games-grid">
       <div class="game-card" data-game="CONCRETE_DASH.html">
         <div class="game-card-content">
           <div class="game-icon">🏃</div>
           <p class="game-title">CONCRETE DASH</p>
-          <p class="game-desc">Endless runner in brutal cityscape. Survive the grid.</p>
+          <p class="game-desc">Endless runner in brutal cityscape. Survive the grid. No second chances.</p>
         </div>
-        <div class="game-play-btn">PLAY →</div>
+        <div class="game-play-btn">▶ PLAY NOW →</div>
       </div>
       <div class="game-card" data-game="SCRAP_LEGENDS.html">
         <div class="game-card-content">
           <div class="game-icon">🃏</div>
           <p class="game-title">SCRAP LEGENDS</p>
-          <p class="game-desc">Neo-brutalist card battle. Collect and dominate.</p>
+          <p class="game-desc">Neo-brutalist card battle. Collect industrial scrap. Dominate the yard.</p>
         </div>
-        <div class="game-play-btn">PLAY →</div>
+        <div class="game-play-btn">▶ PLAY NOW →</div>
       </div>
     </div>
 
-    <!-- Coming Soon Section -->
-    <div style="margin-top:4rem; padding-top:2rem; border-top:2px solid rgba(255,255,255,.15);">
-      <p class="eyebrow">▲ COMING SOON</p>
+    <!-- Coming Soon Section with Hazard Tape -->
+    <div style="margin-top:3rem; padding-top:0;">
+      <!-- Hazard Tape Before Coming Soon -->
+      <div class="hazard-tape">
+        <span>⚠ COMING SOON ⚠</span>
+      </div>
+
       <div class="games-grid">
         <div class="game-card-placeholder">
           <div class="game-card-content">
-            <div class="game-icon">⚙️</div>
-            <p class="game-title">NEXT PROJECT</p>
-            <p class="game-desc">Something brutal is brewing...</p>
+            <div class="game-icon" style="opacity:.4;">⚙️</div>
+            <p class="game-title" style="opacity:.4;">NEXT PROJECT</p>
+            <p class="game-desc" style="opacity:.3;">Something brutal is brewing in the factory...</p>
           </div>
-          <div class="game-play-btn-disabled">SOON</div>
+          <div class="game-play-btn-disabled">◼ LOCKED</div>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Warning Stripe — Bottom -->
+  <div class="warning-stripe red" style="margin-top:2rem;"></div>
+
+  <!-- Coordinate Tag -->
+  <div class="coord-tag">SYS.GAMES: 2<br/>SYS.QUEUE: 1<br/>BUILD.V2.6</div>
 
   <div class="page-num">02</div>
   <p class="swipe-hint">⟸ NAVIGATE ⟹</p>

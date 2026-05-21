@@ -384,13 +384,21 @@ function updateProgressDots() {
     d.classList.toggle('active', i === state.current);
 
     if (isDarkPage) {
+      // Light page → dark dots
       d.style.background = i === state.current 
-        ? 'rgba(0,0,0,.65)' 
-        : 'rgba(0,0,0,.18)';
+        ? 'rgba(10,10,10,.7)' 
+        : 'rgba(10,10,10,.18)';
+      d.style.borderColor = i === state.current
+        ? '#0a0a0a'
+        : 'rgba(10,10,10,.25)';
     } else {
+      // Dark pages → yellow dots
       d.style.background = i === state.current 
-        ? 'rgba(255,255,255,.9)' 
-        : 'rgba(255,255,255,.28)';
+        ? '#ffeb3b' 
+        : 'rgba(255,235,59,.18)';
+      d.style.borderColor = i === state.current
+        ? '#ffeb3b'
+        : 'rgba(255,235,59,.35)';
     }
   });
 }
@@ -404,8 +412,11 @@ function updateScrollLine() {
 
   scrollLine.style.width = progress + '%';
   scrollLine.style.background = isDarkPage 
-    ? 'rgba(0,0,0,.28)' 
-    : 'rgba(255,255,255,.4)';
+    ? 'rgba(10,10,10,.35)' 
+    : '#ffeb3b';
+  scrollLine.style.boxShadow = isDarkPage
+    ? 'none'
+    : '0 0 8px rgba(255,235,59,.3)';
 }
 
 /**
@@ -413,9 +424,9 @@ function updateScrollLine() {
  */
 function updateArrows() {
   const isDarkPage = state.current === 2;
-  const strokeColor = isDarkPage ? 'rgba(0,0,0,.5)' : 'white';
-  const bgColor = isDarkPage ? 'rgba(0,0,0,.07)' : 'rgba(255,255,255,.09)';
-  const borderColor = isDarkPage ? 'rgba(0,0,0,.11)' : 'rgba(255,255,255,.15)';
+  const strokeColor = isDarkPage ? 'rgba(10,10,10,.5)' : 'rgba(255,235,59,.7)';
+  const bgColor = isDarkPage ? 'rgba(10,10,10,.06)' : 'rgba(255,235,59,.08)';
+  const borderColor = isDarkPage ? 'rgba(10,10,10,.15)' : 'rgba(255,235,59,.3)';
 
   document.querySelector('#ap-left svg').style.stroke = strokeColor;
   document.querySelector('#ap-right svg').style.stroke = strokeColor;
