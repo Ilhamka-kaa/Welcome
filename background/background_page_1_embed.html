@@ -71,6 +71,12 @@
                 case 'reset':
                     init();
                     break;
+                case 'pause':
+                    stopAnim();
+                    break;
+                case 'resume':
+                    startAnim();
+                    break;
             }
         });
 
@@ -211,8 +217,13 @@
             document.hidden ? stopAnim() : startAnim();
         });
 
+        const urlParams = new URLSearchParams(window.location.search);
+        const autoplay = urlParams.get('autoplay') !== 'false';
+
         init();
-        startAnim();
+        if (autoplay) {
+            startAnim();
+        }
     </script>
 </body>
 

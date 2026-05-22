@@ -327,9 +327,14 @@ document.addEventListener('visibilitychange', () => {
   document.hidden ? stopAnim() : startAnim();
 });
 
+const urlParams = new URLSearchParams(window.location.search);
+const autoplay = urlParams.get('autoplay') === 'true';
+
 resize();
 window.addEventListener('resize', resize);
-startAnim();
+if (autoplay) {
+  startAnim();
+}
 </script>
 </body>
 </html>

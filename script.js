@@ -95,6 +95,9 @@ function transitionToPage(toIdx, direction) {
   const fromPage = pages[state.current];
   const toPage = pages[toIdx];
 
+  // Resume target background early
+  handleBackgroundTransitionStart(state.current, toIdx);
+
   // Prepare pages
   prepareIncomingPage(toPage, direction);
   prepareOutgoingPage(fromPage);
@@ -155,6 +158,9 @@ function finalizeTransition(toIdx) {
 
   revealPage(state.current);
   updateUI();
+
+  // Control background animation pause/resume states on transition completion
+  handleBackgroundTransitionComplete(toIdx);
 }
 
 /**
@@ -201,6 +207,9 @@ function startDragOperation(e, side) {
   document.body.style.userSelect = 'none';
   cursorEl.classList.add('small');
   cursorRingEl.classList.add('big');
+
+  // Resume target background early so it animates while transitioning
+  handleBackgroundTransitionStart(state.current, target);
 
   setupDragPagePositions(target, dir);
 }
@@ -316,6 +325,9 @@ function commitDragTransition() {
     state.animating = false;
     revealPage(state.current);
     updateUI();
+
+    // Control background animation pause/resume states on transition completion
+    handleBackgroundTransitionComplete(target);
   }, CONFIG.ANIMATION_DURATION);
 }
 
@@ -344,6 +356,9 @@ function snapBackFromDrag() {
 
   setTimeout(() => {
     resetPagesToFinalState();
+
+    // Since the transition was cancelled, keep current page active and pause target background
+    handleBackgroundTransitionComplete(state.current);
   }, CONFIG.SNAP_BACK_DURATION);
 }
 
@@ -544,22 +559,99 @@ function setupDragListeners() {
 }
 
 /**
+ * Helper to check if event target is currently scrollable and not at its boundary
+ */
+function isInsideScrollable(e) {
+  let el = e.target;
+  if (el && el.nodeType === 3) el = el.parentNode; // safe check for text nodes
+  while (el && el !== document.body && el !== document.documentElement) {
+    // Block transition if user is scrolling inside form controls
+    const tag = el.tagName ? el.tagName.toLowerCase() : '';
+    if (tag === 'input' || tag === 'textarea' || tag === 'select' || tag === 'button') {
+      return true;
+    }
+
+    const style = window.getComputedStyle(el);
+    const overflowY = style.overflowY;
+    const overflowX = style.overflowX;
+
+    const hasScrollableY = (overflowY === 'auto' || overflowY === 'scroll') && el.scrollHeight > el.clientHeight;
+    const hasScrollableX = (overflowX === 'auto' || overflowX === 'scroll') && el.scrollWidth > el.clientWidth;
+
+    if (hasScrollableY || hasScrollableX) {
+      // If it's a nested scrollable element (not the main page-content), block transitions completely
+      if (!el.classList.contains('page-content')) {
+        return true;
+      }
+
+      // For the main page-content, only block if we are not at the scroll boundaries
+      if (hasScrollableY && Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        const atTop = el.scrollTop <= 0 && e.deltaY < 0;
+        const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1 && e.deltaY > 0;
+        if (!atTop && !atBottom) {
+          return true;
+        }
+      }
+      if (hasScrollableX && Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+        const atLeft = el.scrollLeft <= 0 && e.deltaX < 0;
+        const atRight = el.scrollLeft + el.clientWidth >= el.scrollWidth - 1 && e.deltaX > 0;
+        if (!atLeft && !atRight) {
+          return true;
+        }
+      }
+    }
+    el = el.parentElement;
+  }
+  return false;
+}
+
+/**
  * Setup touch swipe listeners
  */
 function setupTouchSwipeListeners() {
   document.addEventListener('touchstart', (e) => {
+    const targetEl = e.target.nodeType === 3 ? e.target.parentNode : e.target;
+    // Ignore swipes starting inside form controls or button elements (safely using closest)
+    if (targetEl && typeof targetEl.closest === 'function' && targetEl.closest('input, textarea, select, button')) {
+      state.touchStart = null;
+      return;
+    }
+
+    // Ignore swipes starting inside nested scrollable containers (e.g. comments list)
+    let el = targetEl;
+    while (el && el !== document.body && el !== document.documentElement) {
+      if (el.classList.contains('page-content')) {
+        break;
+      }
+      const style = window.getComputedStyle(el);
+      const overflowY = style.overflowY;
+      const overflowX = style.overflowX;
+      const hasScrollableY = (overflowY === 'auto' || overflowY === 'scroll') && el.scrollHeight > el.clientHeight;
+      const hasScrollableX = (overflowX === 'auto' || overflowX === 'scroll') && el.scrollWidth > el.clientWidth;
+      if (hasScrollableY || hasScrollableX) {
+        state.touchStart = null;
+        return;
+      }
+      el = el.parentElement;
+    }
+
     if (!state.animating) {
-      state.touchStart = e.touches[0].clientX;
+      state.touchStart = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY
+      };
     }
   }, { passive: true });
 
   document.addEventListener('touchend', (e) => {
     if (state.drag || state.touchStart === null) return;
 
-    const dx = e.changedTouches[0].clientX - state.touchStart;
+    const dx = e.changedTouches[0].clientX - state.touchStart.x;
+    const dy = e.changedTouches[0].clientY - state.touchStart.y;
     state.touchStart = null;
 
-    if (Math.abs(dx) > CONFIG.TOUCH_SWIPE_THRESHOLD) {
+    // Only swipe if the gesture is primarily horizontal (dx > dy) and exceeds threshold
+    if (Math.abs(dx) > CONFIG.TOUCH_SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy)) {
       dx < 0 ? nextPage() : prevPage();
     }
   });
@@ -581,6 +673,9 @@ function setupKeyboardListeners() {
 function setupWheelListeners() {
   document.addEventListener('wheel', (e) => {
     if (state.wheelTimeout || state.animating) return;
+
+    // Ignore wheel navigation if scrolling inside active scrollable containers
+    if (isInsideScrollable(e)) return;
 
     const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
 
@@ -923,6 +1018,10 @@ async function initialize() {
   setupCommentsHandler();
   setupBackgroundBridge();
   updateUI();
+
+  // Pause/resume backgrounds correctly on start (page 1 running, page 2 paused)
+  handleBackgroundTransitionComplete(0);
+
   setTimeout(() => revealPage(0), 100);
 }
 
@@ -932,6 +1031,64 @@ initialize();
 // ═══════════════════════════════════════════════════════════════
 // BACKGROUND BRIDGE — Mouse forwarding + Control Panel for Page 1
 // ═══════════════════════════════════════════════════════════════
+
+/**
+ * Send postMessage to background iframe safely
+ */
+function sendMsgToBgFrame(frameId, data) {
+  const frame = document.getElementById(frameId);
+  try {
+    if (frame && frame.contentWindow) {
+      frame.contentWindow.postMessage(data, '*');
+    }
+  } catch (_) {}
+}
+
+/**
+ * Control background animation pause/resume states
+ */
+function setBackgroundRunning(pageIdx, isRunning) {
+  const frameId = pageIdx === 0 ? 'p1-bg-frame' : (pageIdx === 1 ? 'p2-bg-frame' : null);
+  if (!frameId) return;
+  sendMsgToBgFrame(frameId, { type: isRunning ? 'resume' : 'pause' });
+}
+
+/**
+ * Handle background transition start (resume target background early)
+ */
+function handleBackgroundTransitionStart(fromIdx, toIdx) {
+  setBackgroundRunning(toIdx, true);
+}
+
+/**
+ * Handle background transition completion (pause all backgrounds except currentIdx)
+ */
+function handleBackgroundTransitionComplete(currentIdx) {
+  for (let i = 0; i < CONFIG.TOTAL_PAGES; i++) {
+    if (i === currentIdx) {
+      setBackgroundRunning(i, true);
+    } else {
+      setBackgroundRunning(i, false);
+    }
+  }
+  updatePanelVisibility();
+}
+
+/**
+ * Update background settings panel visibility based on active page
+ */
+function updatePanelVisibility() {
+  const wrap = document.getElementById('bg-panel-wrap');
+  const panel = document.getElementById('bgPanel');
+  if (!wrap) return;
+
+  if (state.current === 0) {
+    wrap.classList.add('bg-panel-visible');
+  } else {
+    wrap.classList.remove('bg-panel-visible');
+    if (panel) panel.classList.remove('open');
+  }
+}
 
 function setupBackgroundBridge() {
   const wrap         = document.getElementById('bg-panel-wrap');
@@ -949,18 +1106,8 @@ function setupBackgroundBridge() {
 
   if (!wrap) return; // panel not in DOM yet
 
-  /* ── Helper: get iframe contentWindow safely ── */
-  function sendMsgToFrame(frameId, data) {
-    const frame = document.getElementById(frameId);
-    try {
-      if (frame && frame.contentWindow) {
-        frame.contentWindow.postMessage(data, '*');
-      }
-    } catch (_) {}
-  }
-
   function sendMsg(data) {
-    sendMsgToFrame('p1-bg-frame', data);
+    sendMsgToBgFrame('p1-bg-frame', data);
   }
 
   /* ── Mouse forwarding: stage → iframe ── */
@@ -996,46 +1143,9 @@ function setupBackgroundBridge() {
         const frame = document.getElementById('p2-bg-frame');
         if (!frame) return;
         const rect = frame.getBoundingClientRect();
-        sendMsgToFrame('p2-bg-frame', { type: 'click', x: e.clientX - rect.left, y: e.clientY - rect.top });
+        sendMsgToBgFrame('p2-bg-frame', { type: 'click', x: e.clientX - rect.left, y: e.clientY - rect.top });
       }
     });
-  }
-
-  /* ── Panel show/hide on page change ── */
-  function updatePanelVisibility() {
-    if (state.current === 0) {
-      wrap.classList.add('bg-panel-visible');
-    } else {
-      wrap.classList.remove('bg-panel-visible');
-      panel.classList.remove('open'); // close panel when leaving page 1
-    }
-  }
-
-  // Override finalizeTransition to hook visibility update
-  const _origFinalizeTransition = window._bgBridgeFinalizeHooked;
-  if (!_origFinalizeTransition) {
-    window._bgBridgeFinalizeHooked = true;
-    // Poll state.current changes to update visibility and performance state
-    let lastPage = -1;
-    function checkPageChange() {
-      if (state.current !== lastPage) {
-        if (state.current === 0) {
-          sendMsgToFrame('p1-bg-frame', { type: 'resume' });
-          sendMsgToFrame('p2-bg-frame', { type: 'pause' });
-        } else if (state.current === 1) {
-          sendMsgToFrame('p1-bg-frame', { type: 'pause' });
-          sendMsgToFrame('p2-bg-frame', { type: 'resume' });
-        } else {
-          sendMsgToFrame('p1-bg-frame', { type: 'pause' });
-          sendMsgToFrame('p2-bg-frame', { type: 'pause' });
-        }
-        
-        lastPage = state.current;
-        updatePanelVisibility();
-      }
-      requestAnimationFrame(checkPageChange);
-    }
-    checkPageChange();
   }
 
   /* ── Toggle panel open/close ── */
