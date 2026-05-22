@@ -2246,6 +2246,11 @@ h2 {
 @media(max-width:360px) {
   .page-content {
     padding: clamp(1rem, 3vw, 1.5rem);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    justify-content: flex-start;
+    padding-top: 3.5rem;
+    padding-bottom: 4.5rem;
   }
 
   h1 {
@@ -2314,6 +2319,7 @@ h2 {
 
   .ci-val {
     font-size: 0.8rem;
+    word-break: break-all;
   }
 
   .avail-badge {
@@ -2363,7 +2369,7 @@ h2 {
   }
 
   .games-grid-5 {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
   }
 
   .game-card::after {
@@ -2401,6 +2407,11 @@ h2 {
 @media(min-width:361px) and (max-width:480px) {
   .page-content {
     padding: clamp(1.2rem, 3.5vw, 1.8rem);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    justify-content: flex-start;
+    padding-top: 3.5rem;
+    padding-bottom: 4.5rem;
   }
 
   h1 {
@@ -2439,12 +2450,26 @@ h2 {
     grid-template-columns: repeat(2, 1fr);
   }
 
+  .contact-item {
+    padding: 0.8rem 1rem;
+    border-width: 3px;
+  }
+
+  .ci-val {
+    font-size: clamp(0.72rem, 3.8vw, 0.9rem);
+    word-break: break-all;
+  }
+
   .game-icon {
     font-size: 2.2rem;
   }
 
   .game-card {
     min-height: clamp(160px, 45vw, 200px);
+  }
+
+  .games-grid-5 {
+    grid-template-columns: 1fr;
   }
 
   #progress {
@@ -2466,6 +2491,11 @@ h2 {
 @media(min-width:481px) and (max-width:768px) {
   .page-content {
     padding: clamp(1.5rem, 4vw, 2.5rem);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    justify-content: flex-start;
+    padding-top: 4rem;
+    padding-bottom: 5rem;
   }
 
   h1 {
@@ -2486,9 +2516,18 @@ h2 {
     gap: 12px;
   }
 
+  .ci-val {
+    font-size: clamp(0.8rem, 3.2vw, 0.95rem);
+    word-break: break-all;
+  }
+
   .games-grid {
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 16px;
+  }
+
+  .games-grid-5 {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .game-card {
@@ -2515,6 +2554,10 @@ h2 {
   .games-grid {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 18px;
+  }
+
+  .games-grid-5 {
+    grid-template-columns: repeat(3, 1fr);
   }
 
   #progress {
