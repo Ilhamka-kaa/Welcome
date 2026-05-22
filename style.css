@@ -569,6 +569,13 @@ body {
   z-index: 5;
 }
 
+.main-content-block {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    SECTION 11: INDUSTRIAL DECORATIONS
    ═══════════════════════════════════════════════════════════════ */
