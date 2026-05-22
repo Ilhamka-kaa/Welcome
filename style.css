@@ -928,6 +928,31 @@ h1 {
   position: relative;
 }
 
+.ihk-label-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ihk-title-logo-badge {
+  height: 12px;
+  width: auto;
+  object-fit: contain;
+  opacity: 0.85;
+}
+
+#p1 .ihk-title-logo-badge {
+  filter: drop-shadow(0 0 2px var(--brutal-yellow));
+}
+
+#p2 .ihk-title-logo-badge {
+  filter: drop-shadow(0 0 2px var(--brutal-red));
+}
+
+#p3 .ihk-title-logo-badge {
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.5));
+}
+
 /* Tiny monospace label above — like a system tag */
 .ihk-label {
   font-family: 'Courier New', monospace;
@@ -1715,6 +1740,73 @@ h2 {
 #p3 .page-num {
   color: var(--c1);
   opacity: .06;
+}
+
+/* --- Brand Logo (top-left decoration) --- */
+.brand-logo {
+  position: absolute;
+  top: clamp(1.5rem, 3vw, 2.5rem);
+  left: clamp(1.5rem, 3vw, 2.5rem);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 6;
+  text-decoration: none;
+}
+
+.brand-logo-box {
+  width: 32px;
+  height: 32px;
+  border: 2px solid currentColor;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px;
+  background: var(--c1);
+  box-shadow: 3px 3px 0 currentColor;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.brand-logo:hover .brand-logo-box {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 currentColor;
+}
+
+.brand-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.brand-logo-text {
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: currentColor;
+}
+
+#p1 .brand-logo {
+  color: var(--brutal-yellow);
+}
+
+#p2 .brand-logo {
+  color: var(--brutal-red);
+}
+
+#p3 .brand-logo {
+  color: var(--c1);
+}
+
+#p3 .brand-logo-box {
+  background: var(--c3);
+}
+
+@media (max-width: 600px) {
+  .brand-logo-text {
+    display: none;
+  }
 }
 
 .corner-tag {

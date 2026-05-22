@@ -714,6 +714,19 @@ function setupCursorTracking() {
 /**
  * Initialize all event listeners
  */
+/**
+ * Setup brand logo click listener (scroll back to home page)
+ */
+function setupBrandLogoListeners() {
+  document.addEventListener('click', (e) => {
+    const brandLogo = e.target.closest('.brand-logo');
+    if (brandLogo) {
+      e.preventDefault();
+      goToPage(0);
+    }
+  });
+}
+
 function initializeEventListeners() {
   setupDragZoneListeners();
   setupDragListeners();
@@ -722,6 +735,7 @@ function initializeEventListeners() {
   setupWheelListeners();
   setupDotListeners();
   setupCursorTracking();
+  setupBrandLogoListeners();
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1138,7 +1152,7 @@ function setupBackgroundBridge() {
       } else if (state.current === 1) {
         // Page 2 interactive grid click
         // Don't trigger cell explosion when clicking on cards, placeholders, tags, or page navigation elements
-        if (e.target.closest('.game-card, .game-card-placeholder, .swipe-hint, .page-num, .corner-tag, .hero-title-ihk, .hero-desc, .status-indicator')) return;
+        if (e.target.closest('.brand-logo, .game-card, .game-card-placeholder, .swipe-hint, .page-num, .corner-tag, .hero-title-ihk, .hero-desc, .status-indicator')) return;
         
         const frame = document.getElementById('p2-bg-frame');
         if (!frame) return;
