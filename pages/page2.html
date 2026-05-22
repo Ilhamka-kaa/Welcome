@@ -1,4 +1,6 @@
-<!-- Page 2: Arcade — Neo-Brutalism Premium -->
+<!-- ── INTERACTIVE BACKGROUND (iframe embed, z-index 0) ── -->
+<iframe id="p2-bg-frame" class="page-bg-frame" src="background/background_page_2_embed.html" tabindex="-1" aria-hidden="true" scrolling="no" frameborder="0"></iframe>
+
 <div class="page-dimmer"></div>
 <div class="page-shine"></div>
 
@@ -20,7 +22,8 @@
 
   <div style="width:100%; display:flex; flex-direction:column;">
     <!-- Status Indicator -->
-    <div class="status-indicator" style="border-color: rgba(244,67,54,.3); background: rgba(244,67,54,.06); color: var(--brutal-red);">
+    <div class="status-indicator"
+      style="border-color: rgba(244,67,54,.3); background: rgba(244,67,54,.06); color: var(--brutal-red);">
       <div class="status-dot" style="background: var(--brutal-red); box-shadow: 0 0 6px var(--brutal-red);"></div>
       <span>ARCADE.MODE: ACTIVE</span>
     </div>
@@ -28,58 +31,108 @@
     <p class="eyebrow">
       <span class="eyebrow-badge">▲ PLAYABLE EXPERIMENTS</span>
     </p>
-    <h2 style="margin-bottom:0.5rem;">NEO-BRUTALIST<br/>ARCADE</h2>
-    <p class="tagline" style="margin-bottom:2rem;">Experimental game projects. Click to play fullscreen. No mercy.</p>
+    <div class="hero-title-ihk" style="margin-bottom:0.5rem;">
+        <div class="ihk-label">// SYS.MODULE</div>
+        <div class="ihk-name">
+          <span class="ihk-dash">—</span>
+          <span class="ihk-main" style="color:#fff; text-shadow: 3px 3px 0 var(--brutal-red), 6px 6px 0 rgba(255,109,0,.4);">IHK</span>
+          <span class="ihk-dash">—</span>
+        </div>
+        <div class="ihk-sub" style="color:var(--brutal-red); border-top-color:var(--brutal-red); text-shadow:1px 1px 0 rgba(255,109,0,.5);">ARCADE</div>
+      </div>
+    <div class="hero-desc" style="margin-bottom:1.5rem;">
+        <p class="hero-desc-line">
+          <span class="hd-mark red">Experimental</span> games, built for
+          <span class="hd-mark">fun</span> —
+          <span class="hd-mono">[ click to play fullscreen ]</span>
+        </p>
+        <p class="hero-desc-line">
+          No <span class="hd-strike">rules</span>
+          <span class="hd-mark red">no mercy</span>.
+          Just <span class="hd-tag">raw&nbsp;gameplay</span>.
+        </p>
+      </div>
 
-    <!-- Hazard Tape Separator -->
-    <div class="hazard-tape" style="margin-top:0; margin-bottom:1.2rem;">
-      <span>◆ SELECT GAME ◆</span>
-    </div>
+    <!-- Games Grid — 5 total slots -->
+    <div class="games-grid-5">
 
-    <div class="games-grid">
+      <!-- SLOT 1 — Concrete Dash (Active) -->
       <div class="game-card" data-game="CONCRETE_DASH.html">
         <div class="game-card-content">
           <div class="game-icon">🏃</div>
           <p class="game-title">CONCRETE DASH</p>
-          <p class="game-desc">Endless runner in brutal cityscape. Survive the grid. No second chances.</p>
+          <p class="game-genre-tag">ENDLESS RUNNER</p>
+          <p class="game-desc">Endless runner in brutal cityscape. Lompat, tiarap, dan survive melewati rintangan grid.
+            Makin jauh, makin brutal. No second chances.</p>
         </div>
         <div class="game-play-btn">▶ PLAY NOW →</div>
       </div>
+
+      <!-- SLOT 2 — Scrap Legends (Active) -->
       <div class="game-card" data-game="SCRAP_LEGENDS.html">
         <div class="game-card-content">
           <div class="game-icon">🃏</div>
           <p class="game-title">SCRAP LEGENDS</p>
-          <p class="game-desc">Neo-brutalist card battle. Collect industrial scrap. Dominate the yard.</p>
+          <p class="game-genre-tag">CARD BATTLE</p>
+          <p class="game-desc">Neo-brutalist TCG card battle. Buka booster pack, bangun deck terbaik, dan kalahkan musuh
+            AI di arena scrapyard. Kumpulkan kartu Legendary.</p>
         </div>
         <div class="game-play-btn">▶ PLAY NOW →</div>
       </div>
-    </div>
 
-    <!-- Coming Soon Section with Hazard Tape -->
-    <div style="margin-top:3rem; padding-top:0;">
-      <!-- Hazard Tape Before Coming Soon -->
-      <div class="hazard-tape">
-        <span>⚠ COMING SOON ⚠</span>
-      </div>
-
-      <div class="games-grid">
-        <div class="game-card-placeholder">
-          <div class="game-card-content">
-            <div class="game-icon" style="opacity:.4;">⚙️</div>
-            <p class="game-title" style="opacity:.4;">NEXT PROJECT</p>
-            <p class="game-desc" style="opacity:.3;">Something brutal is brewing in the factory...</p>
-          </div>
-          <div class="game-play-btn-disabled">◼ LOCKED</div>
+      <!-- SLOT 3 — Coming Soon -->
+      <div class="game-card-placeholder">
+        <div class="game-card-content">
+          <div class="game-icon" style="opacity:.35; filter:grayscale(1);">🔫</div>
+          <p class="game-title" style="opacity:.35;">PROJECT //03</p>
+          <p class="game-genre-tag cs-tag">??? UNKNOWN</p>
+          <p class="game-desc" style="opacity:.3;">Something brutal is brewing deep in the factory. Development in
+            progress...</p>
+        </div>
+        <div class="game-cs-badge">
+          <span class="cs-icon">⚠</span>
+          <span>COMING SOON</span>
         </div>
       </div>
-    </div>
+
+      <!-- SLOT 4 — Coming Soon -->
+      <div class="game-card-placeholder">
+        <div class="game-card-content">
+          <div class="game-icon" style="opacity:.35; filter:grayscale(1);">🌐</div>
+          <p class="game-title" style="opacity:.35;">PROJECT //04</p>
+          <p class="game-genre-tag cs-tag">??? UNKNOWN</p>
+          <p class="game-desc" style="opacity:.3;">A new experiment is being forged. Heavy machinery is running. Stay
+            tuned.</p>
+        </div>
+        <div class="game-cs-badge">
+          <span class="cs-icon">⚠</span>
+          <span>COMING SOON</span>
+        </div>
+      </div>
+
+      <!-- SLOT 5 — Coming Soon -->
+      <div class="game-card-placeholder">
+        <div class="game-card-content">
+          <div class="game-icon" style="opacity:.35; filter:grayscale(1);">⚙️</div>
+          <p class="game-title" style="opacity:.35;">PROJECT //05</p>
+          <p class="game-genre-tag cs-tag">??? UNKNOWN</p>
+          <p class="game-desc" style="opacity:.3;">Classified. The blueprint is sealed. Releasing when it's ready to
+            destroy.</p>
+        </div>
+        <div class="game-cs-badge">
+          <span class="cs-icon">⚠</span>
+          <span>COMING SOON</span>
+        </div>
+      </div>
+
+    </div><!-- end games-grid-5 -->
   </div>
 
   <!-- Warning Stripe — Bottom -->
   <div class="warning-stripe red" style="margin-top:2rem;"></div>
 
   <!-- Coordinate Tag -->
-  <div class="coord-tag">SYS.GAMES: 2<br/>SYS.QUEUE: 1<br/>BUILD.V2.6</div>
+  <div class="coord-tag">SYS.GAMES: 2<br />SYS.QUEUE: 3<br />BUILD.V2.6</div>
 
   <div class="page-num">02</div>
   <p class="swipe-hint">⟸ NAVIGATE ⟹</p>

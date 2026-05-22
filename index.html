@@ -65,6 +65,57 @@
     </div>
   </div>
 
+  <!-- ── BACKGROUND SETTINGS PANEL (Page 1 only, bottom-right) ── -->
+  <div id="bg-panel-wrap">
+    <button id="bg-panel-toggle" title="Background Settings" aria-label="Toggle background settings">
+      <span></span><span></span><span></span>
+    </button>
+
+    <div class="bg-panel" id="bgPanel">
+      <div class="bg-panel-header">
+        <span class="bg-panel-title">// BG CONFIG</span>
+        <button class="bg-panel-close" id="bgPanelClose" aria-label="Close">✕</button>
+      </div>
+      <div class="bg-panel-body">
+
+        <div class="bg-ctrl-group">
+          <label class="bg-ctrl-label">Warna Partikel</label>
+          <input type="color" id="bgColor" value="#FFE600" class="bg-color-input">
+        </div>
+
+        <hr class="bg-divider">
+
+        <div class="bg-ctrl-group">
+          <div class="bg-ctrl-row">
+            <label class="bg-ctrl-label">Speed</label>
+            <span class="bg-ctrl-val" id="bgSpeedVal">0.8</span>
+          </div>
+          <input type="range" id="bgSpeed" min="0" max="5" step="0.1" value="0.8" class="bg-range">
+        </div>
+
+        <div class="bg-ctrl-group">
+          <div class="bg-ctrl-row">
+            <label class="bg-ctrl-label">Koneksi</label>
+            <span class="bg-ctrl-val" id="bgConnectVal">110</span>
+          </div>
+          <input type="range" id="bgConnect" min="50" max="300" value="110" class="bg-range">
+        </div>
+
+        <div class="bg-ctrl-group">
+          <div class="bg-ctrl-row">
+            <label class="bg-ctrl-label">Mouse Radius</label>
+            <span class="bg-ctrl-val" id="bgRadiusVal">130</span>
+          </div>
+          <input type="range" id="bgRadius" min="30" max="300" value="130" class="bg-range">
+        </div>
+
+        <hr class="bg-divider">
+
+        <button class="bg-reset-btn" id="bgReset">[ Reset Grid ]</button>
+      </div>
+    </div>
+  </div>
+
   <script src="script.js"></script>
 </body>
 

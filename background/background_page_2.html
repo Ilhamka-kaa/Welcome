@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Glitch Grid — Neo Brutalism BG</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#0d0d0d;overflow:hidden;font-family:'Courier New',monospace;}
+canvas{display:block;position:absolute;top:0;left:0;}
+#c-grid{z-index:1;}
+#c-glitch{z-index:2;}
+#c-ui{z-index:3;}
+
+#ui{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  z-index:10;pointer-events:none;
+}
+
+#panel{
+  position:absolute;bottom:28px;left:28px;
+  pointer-events:all;
+  background:#FFE600;
+  border:3px solid #000;
+  box-shadow:6px 6px 0 #000;
+  width:260px;
+}
+.ph{
+  background:#000;
+  color:#FFE600;
+  padding:8px 12px;
+  font-size:0.7rem;
+  font-weight:900;
+  letter-spacing:3px;
+  text-transform:uppercase;
+  border-bottom:3px solid #000;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.pb{padding:12px;}
+.row{margin-bottom:10px;}
+.row label{
+  display:block;font-size:0.65rem;font-weight:900;
+  text-transform:uppercase;letter-spacing:1px;
+  color:#000;margin-bottom:4px;
+}
+.srow{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+.sval{
+  font-size:0.7rem;font-weight:900;
+  background:#000;color:#FFE600;
+  padding:1px 6px;min-width:34px;text-align:center;
+  border:2px solid #000;
+}
+input[type=range]{
+  flex:1;-webkit-appearance:none;height:6px;
+  background:#000;border:none;outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:16px;height:16px;
+  background:#FFE600;border:3px solid #000;cursor:pointer;
+}
+.palette{display:flex;gap:5px;flex-wrap:wrap;}
+.swatch{
+  width:28px;height:28px;border:3px solid #000;
+  cursor:pointer;transition:transform 0.1s,box-shadow 0.1s;
+  box-shadow:3px 3px 0 #000;
+}
+.swatch:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 #000;}
+.swatch.active{transform:translate(2px,2px);box-shadow:1px 1px 0 #000;}
+.btn{
+  width:100%;padding:8px;background:#000;color:#FFE600;
+  border:3px solid #000;font-family:'Courier New',monospace;
+  font-weight:900;font-size:0.65rem;letter-spacing:2px;
+  text-transform:uppercase;cursor:pointer;
+  box-shadow:4px 4px 0 #555;
+  transition:transform 0.1s,box-shadow 0.1s;
+  margin-top:4px;
+}
+.btn:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 #555;}
+.btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 #555;}
+
+#togglePnl{
+  position:absolute;bottom:28px;right:28px;
+  pointer-events:all;
+  width:46px;height:46px;
+  background:#FFE600;border:3px solid #000;
+  box-shadow:5px 5px 0 #000;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:5px;
+  transition:transform 0.1s,box-shadow 0.1s;
+  font-weight:900;font-size:1.1rem;
+  color:#000;
+}
+#togglePnl:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 #000;}
+#togglePnl:active{transform:translate(3px,3px);box-shadow:2px 2px 0 #000;}
+
+#watermark{
+  position:absolute;top:20px;left:50%;transform:translateX(-50%);
+  font-size:0.6rem;font-weight:900;letter-spacing:4px;
+  text-transform:uppercase;color:rgba(255,230,0,0.18);
+  pointer-events:none;white-space:nowrap;
+}
+</style>
+</head>
+<body>
+
+<canvas id="c-grid"></canvas>
+<canvas id="c-glitch"></canvas>
+<canvas id="c-ui"></canvas>
+
+<div id="ui">
+  <div id="watermark">// GLITCH GRID — NEO BRUTALISM //</div>
+
+  <div id="panel">
+    <div class="ph">
+      <span>// CTRL</span>
+      <span id="fps-label">00 FPS</span>
+    </div>
+    <div class="pb">
+      <div class="row">
+        <label>Palet Warna</label>
+        <div class="palette" id="palette"></div>
+      </div>
+      <div class="row">
+        <div class="srow">
+          <label style="margin:0">Kecepatan Sel</label>
+          <span class="sval" id="speedOut">5</span>
+        </div>
+        <input type="range" id="speedR" min="1" max="20" step="1" value="5">
+      </div>
+      <div class="row">
+        <div class="srow">
+          <label style="margin:0">Ukuran Grid</label>
+          <span class="sval" id="sizeOut">60</span>
+        </div>
+        <input type="range" id="sizeR" min="30" max="120" step="5" value="60">
+      </div>
+      <div class="row">
+        <div class="srow">
+          <label style="margin:0">Glitch Intens.</label>
+          <span class="sval" id="glitchOut">4</span>
+        </div>
+        <input type="range" id="glitchR" min="0" max="10" step="1" value="4">
+      </div>
+      <button class="btn" id="resetBtn">[ RESET GRID ]</button>
+    </div>
+  </div>
+
+  <div id="togglePnl" title="Toggle Panel">&#9632;</div>
+</div>
+
+<script>
+const cGrid = document.getElementById('c-grid');
+const cGlitch = document.getElementById('c-glitch');
+const cUi = document.getElementById('c-ui');
+const gCtx = cGrid.getContext('2d');
+const glCtx = cGlitch.getContext('2d');
+const uCtx = cUi.getContext('2d');
+
+const PALETTES = [
+  {name:'Lemon',bg:'#0d0d0d',c1:'#FFE600',c2:'#FF2B2B',c3:'#FFFFFF',border:'#FFE600'},
+  {name:'Mint',bg:'#0d0d0d',c1:'#00FF9C',c2:'#FF2B2B',c3:'#FFFFFF',border:'#00FF9C'},
+  {name:'Hot',bg:'#0d0d0d',c1:'#FF2B2B',c2:'#FFE600',c3:'#FFFFFF',border:'#FF2B2B'},
+  {name:'Ice',bg:'#0d0d0d',c1:'#00C8FF',c2:'#FF2B2B',c3:'#FFFFFF',border:'#00C8FF'},
+  {name:'Lilac',bg:'#0d0d0d',c1:'#D966FF',c2:'#FFE600',c3:'#FFFFFF',border:'#D966FF'},
+  {name:'Paper',bg:'#F5F0E8',c1:'#1a1a1a',c2:'#FF2B2B',c3:'#1a1a1a',border:'#1a1a1a'},
+];
+
+let cfg = {
+  pal: 0,
+  speed: 5,
+  cellSize: 60,
+  glitch: 4,
+};
+
+let W, H, cols, rows, cells;
+let panelOpen = true;
+let fpsCounter = 0, lastFpsTime = 0;
+let frameId;
+
+const ASCII_CHARS = '01!@#$%^&*XO+-=><[]{}';
+
+function randChar(){ return ASCII_CHARS[Math.floor(Math.random()*ASCII_CHARS.length)]; }
+
+class Cell {
+  constructor(col, row){
+    this.col = col;
+    this.row = row;
+    this.reset();
+  }
+  reset(){
+    this.alive = Math.random() < 0.35;
+    this.age = 0;
+    this.maxAge = 60 + Math.random() * 200;
+    this.char = randChar();
+    this.charTimer = 0;
+    this.charInterval = 5 + Math.floor(Math.random()*20);
+    this.bright = Math.random();
+    this.hasBorder = Math.random() < 0.4;
+    this.type = Math.floor(Math.random()*4);
+    this.glitching = false;
+    this.glitchTimer = 0;
+  }
+  update(speed){
+    if(!this.alive) return;
+    this.age += speed * 0.5;
+    this.charTimer++;
+    if(this.charTimer >= this.charInterval){
+      this.char = randChar();
+      this.charTimer = 0;
+    }
+    if(Math.random() < 0.002 * cfg.glitch){
+      this.glitching = true;
+      this.glitchTimer = 3 + Math.floor(Math.random()*8);
+    }
+    if(this.glitching){
+      this.glitchTimer--;
+      if(this.glitchTimer <= 0) this.glitching = false;
+    }
+    if(this.age >= this.maxAge){
+      this.alive = false;
+    }
+  }
+  spawn(){
+    if(!this.alive && Math.random() < 0.008 * (cfg.speed/5)){
+      this.reset();
+      this.alive = true;
+      this.age = 0;
+    }
+  }
+}
+
+function resize(){
+  W = cGrid.width = cGlitch.width = cUi.width = window.innerWidth;
+  H = cGrid.height = cGlitch.height = cUi.height = window.innerHeight;
+  rebuildGrid();
+}
+
+function rebuildGrid(){
+  cols = Math.ceil(W / cfg.cellSize) + 1;
+  rows = Math.ceil(H / cfg.cellSize) + 1;
+  cells = [];
+  for(let r=0; r<rows; r++){
+    for(let c=0; c<cols; c++){
+      cells.push(new Cell(c,r));
+    }
+  }
+}
+
+function getCell(c,r){ return cells[r*cols+c]; }
+
+const pal = () => PALETTES[cfg.pal];
+
+function drawGrid(){
+  const p = pal();
+  gCtx.clearRect(0,0,W,H);
+  gCtx.fillStyle = p.bg;
+  gCtx.fillRect(0,0,W,H);
+
+  const sz = cfg.cellSize;
+
+  for(let r=0; r<rows; r++){
+    for(let c=0; c<cols; c++){
+      const cell = getCell(c,r);
+      const x = c * sz;
+      const y = r * sz;
+
+      if(cell.alive){
+        const lifeRatio = cell.age / cell.maxAge;
+        let alpha = lifeRatio < 0.1
+          ? lifeRatio/0.1
+          : lifeRatio > 0.8
+            ? 1 - (lifeRatio-0.8)/0.2
+            : 1;
+        alpha = Math.max(0, Math.min(1, alpha));
+
+        let fillColor, strokeColor;
+
+        if(cell.glitching){
+          fillColor = cell.type%2===0 ? p.c2 : p.c1;
+          strokeColor = '#FFFFFF';
+        } else {
+          if(cell.type===0){ fillColor = p.c1; strokeColor = '#000'; }
+          else if(cell.type===1){ fillColor = p.bg; strokeColor = p.c1; }
+          else if(cell.type===2){ fillColor = p.c2; strokeColor = '#000'; }
+          else { fillColor = p.c3; strokeColor = '#000'; }
+        }
+
+        gCtx.globalAlpha = alpha;
+        gCtx.fillStyle = fillColor;
+        gCtx.fillRect(x+1, y+1, sz-2, sz-2);
+
+        if(cell.hasBorder){
+          gCtx.strokeStyle = strokeColor;
+          gCtx.lineWidth = cell.glitching ? 3 : 2;
+          gCtx.strokeRect(x+1, y+1, sz-2, sz-2);
+        }
+
+        const textAlpha = alpha * (0.5 + cell.bright*0.5);
+        gCtx.globalAlpha = textAlpha;
+        gCtx.fillStyle = cell.type===0 || cell.type===2 ? '#000' : p.c1;
+        gCtx.font = `900 ${Math.floor(sz*0.35)}px 'Courier New'`;
+        gCtx.textAlign = 'center';
+        gCtx.textBaseline = 'middle';
+
+        if(cell.glitching){
+          const ox = (Math.random()-0.5)*8;
+          const oy = (Math.random()-0.5)*4;
+          gCtx.fillText(cell.char, x+sz/2+ox, y+sz/2+oy);
+        } else {
+          gCtx.fillText(cell.char, x+sz/2, y+sz/2);
+        }
+
+        gCtx.globalAlpha = 1;
+      } else {
+        gCtx.strokeStyle = p.c1+'18';
+        gCtx.lineWidth = 0.5;
+        gCtx.strokeRect(x, y, sz, sz);
+      }
+    }
+  }
+}
+
+let glitchLines = [];
+function spawnGlitchLine(){
+  if(Math.random() < 0.04 * (cfg.glitch/4)){
+    glitchLines.push({
+      y: Math.random()*H,
+      h: 1 + Math.random()*4,
+      life: 3 + Math.floor(Math.random()*8),
+      ox: (Math.random()-0.5)*40,
+    });
+  }
+}
+
+function drawGlitch(){
+  glCtx.clearRect(0,0,W,H);
+  const p = pal();
+  glitchLines = glitchLines.filter(l=>l.life>0);
+  for(const l of glitchLines){
+    glCtx.save();
+    glCtx.globalAlpha = 0.6 * (l.life/8);
+    glCtx.drawImage(cGrid, 0, l.y, W, l.h, l.ox, l.y, W, l.h);
+    glCtx.fillStyle = l.life%2===0 ? p.c1+'60' : p.c2+'60';
+    glCtx.fillRect(0, l.y, W, l.h);
+    glCtx.restore();
+    l.life--;
+  }
+  spawnGlitchLine();
+
+  if(cfg.glitch > 5 && Math.random() < 0.02){
+    const gy = Math.random()*H;
+    const gh = 20 + Math.random()*60;
+    glCtx.save();
+    glCtx.globalAlpha = 0.08;
+    glCtx.drawImage(cGrid, 0, gy, W, gh, (Math.random()-0.5)*20, gy, W, gh);
+    glCtx.restore();
+  }
+}
+
+let scanOffset = 0;
+function drawScanlines(){
+  uCtx.clearRect(0,0,W,H);
+  uCtx.fillStyle = 'rgba(0,0,0,0.12)';
+  for(let y=0; y<H; y+=4){
+    uCtx.fillRect(0, y, W, 1.5);
+  }
+  const p = pal();
+  uCtx.fillStyle = p.c1+'08';
+  uCtx.fillRect(0, scanOffset, W, 80);
+  scanOffset = (scanOffset + 1) % H;
+}
+
+let then = 0;
+function loop(now){
+  frameId = requestAnimationFrame(loop);
+  const dt = now - then;
+  if(dt < 1000/60) return;
+  then = now;
+
+  fpsCounter++;
+  if(now - lastFpsTime > 500){
+    const fps = Math.round(fpsCounter / ((now - lastFpsTime)/1000));
+    const el = document.getElementById('fps-label');
+    if(el) el.textContent = String(fps).padStart(2,'0') + ' FPS';
+    fpsCounter = 0;
+    lastFpsTime = now;
+  }
+
+  for(const cell of cells){
+    cell.update(cfg.speed);
+    cell.spawn();
+  }
+
+  drawGrid();
+  drawGlitch();
+  drawScanlines();
+}
+
+function buildPaletteUI(){
+  const cont = document.getElementById('palette');
+  cont.innerHTML='';
+  PALETTES.forEach((p,i)=>{
+    const sw = document.createElement('div');
+    sw.className='swatch'+(i===cfg.pal?' active':'');
+    sw.style.background = p.c1;
+    sw.style.borderColor = p.bg==='#F5F0E8' ? '#000' : p.c1;
+    sw.title = p.name;
+    sw.onclick=()=>{
+      cfg.pal=i;
+      document.querySelectorAll('.swatch').forEach((s,j)=>s.classList.toggle('active',j===i));
+      document.getElementById('panel').style.background = PALETTES[i].c1;
+    };
+    cont.appendChild(sw);
+  });
+  document.getElementById('panel').style.background = PALETTES[cfg.pal].c1;
+}
+
+document.getElementById('speedR').addEventListener('input',e=>{
+  cfg.speed=parseInt(e.target.value);
+  document.getElementById('speedOut').textContent=cfg.speed;
+});
+document.getElementById('sizeR').addEventListener('input',e=>{
+  cfg.cellSize=parseInt(e.target.value);
+  document.getElementById('sizeOut').textContent=cfg.cellSize;
+  rebuildGrid();
+});
+document.getElementById('glitchR').addEventListener('input',e=>{
+  cfg.glitch=parseInt(e.target.value);
+  document.getElementById('glitchOut').textContent=cfg.glitch;
+});
+document.getElementById('resetBtn').onclick=()=>{ rebuildGrid(); };
+document.getElementById('togglePnl').onclick=()=>{
+  panelOpen=!panelOpen;
+  document.getElementById('panel').style.display=panelOpen?'block':'none';
+};
+window.addEventListener('click',e=>{
+  if(e.target.closest('#panel')||e.target.closest('#togglePnl')) return;
+  const c = Math.floor(e.clientX/cfg.cellSize);
+  const r = Math.floor(e.clientY/cfg.cellSize);
+  const radius = 2;
+  for(let dr=-radius;dr<=radius;dr++){
+    for(let dc=-radius;dc<=radius;dc++){
+      const nc=c+dc, nr=r+dr;
+      if(nc>=0&&nc<cols&&nr>=0&&nr<rows){
+        const cell=getCell(nc,nr);
+        cell.reset();
+        cell.alive=true;
+        cell.age=0;
+        cell.glitching=true;
+        cell.glitchTimer=10+Math.floor(Math.random()*15);
+      }
+    }
+  }
+});
+
+buildPaletteUI();
+resize();
+window.addEventListener('resize',resize);
+requestAnimationFrame(t=>{ lastFpsTime=t; loop(t); });
+</script>
+</body>
+</html>

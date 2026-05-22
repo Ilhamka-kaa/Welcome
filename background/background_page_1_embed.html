@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Background P1</title>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #0a0a0a;
+        }
+
+        canvas {
+            display: block;
+            position: absolute;
+            inset: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="bgCanvas"></canvas>
+
+    <script>
+        /* ================================================================
+           NEO-BRUTALISM PARTICLE NETWORK — Embed-only
+           Controlled by parent via postMessage:
+             { type: 'mousemove', x, y }
+             { type: 'click', x, y }
+             { type: 'settings', color, speed, connectionDistance, mouseRadius }
+             { type: 'reset' }
+           ================================================================ */
+
+        const canvas = document.getElementById('bgCanvas');
+        const ctx    = canvas.getContext('2d');
+
+        const settings = {
+            color              : '#FFE600',
+            speed              : 0.8,
+            connectionDistance : 110,
+            mouseRadius        : 130,
+        };
+
+        let mouse = { x: null, y: null };
+
+        /* ── Receive all events from parent ── */
+        window.addEventListener('message', (e) => {
+            if (!e.data) return;
+            switch (e.data.type) {
+                case 'mousemove':
+                    mouse.x = e.data.x;
+                    mouse.y = e.data.y;
+                    break;
+                case 'mouseleave':
+                    mouse.x = null;
+                    mouse.y = null;
+                    break;
+                case 'click':
+                    spawnBurst(e.data.x, e.data.y, 5);
+                    break;
+                case 'settings':
+                    if (e.data.color !== undefined)              settings.color              = e.data.color;
+                    if (e.data.speed !== undefined)              settings.speed              = e.data.speed;
+                    if (e.data.connectionDistance !== undefined) settings.connectionDistance = e.data.connectionDistance;
+                    if (e.data.mouseRadius !== undefined)        settings.mouseRadius        = e.data.mouseRadius;
+                    break;
+                case 'reset':
+                    init();
+                    break;
+            }
+        });
+
+        /* ── Resize ── */
+        function resize() {
+            canvas.width  = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener('resize', () => { resize(); init(); });
+
+        /* ── Helpers ── */
+        function hexToRgb(hex) {
+            const n = parseInt(hex.replace('#', ''), 16);
+            return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`;
+        }
+
+        /* ── Particle ── */
+        class Particle {
+            constructor(x, y, dx, dy, size) {
+                this.x       = x;
+                this.y       = y;
+                this.dx      = dx;
+                this.dy      = dy;
+                this.size    = size;
+                this.density = Math.random() * 25 + 5;
+                this.shape   = Math.random() > 0.5 ? 'square' : 'circle';
+                this.alpha   = Math.random() * 0.35 + 0.65;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle   = settings.color;
+                ctx.strokeStyle = 'rgba(0,0,0,0.75)';
+                ctx.lineWidth   = 1.5;
+                if (this.shape === 'square') {
+                    const s = this.size * 2;
+                    ctx.fillRect(this.x - s/2, this.y - s/2, s, s);
+                    ctx.strokeRect(this.x - s/2, this.y - s/2, s, s);
+                } else {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+
+            update() {
+                if (this.x > canvas.width  || this.x < 0) this.dx = -this.dx;
+                if (this.y > canvas.height || this.y < 0) this.dy = -this.dy;
+
+                if (mouse.x !== null && mouse.y !== null) {
+                    const ex   = mouse.x - this.x;
+                    const ey   = mouse.y - this.y;
+                    const dist = Math.sqrt(ex * ex + ey * ey);
+                    if (dist > 0 && dist < settings.mouseRadius) {
+                        const force = (settings.mouseRadius - dist) / settings.mouseRadius;
+                        this.x -= (ex / dist) * force * this.density * 0.3;
+                        this.y -= (ey / dist) * force * this.density * 0.3;
+                    }
+                }
+
+                this.x += this.dx * settings.speed;
+                this.y += this.dy * settings.speed;
+                this.draw();
+            }
+        }
+
+        let particles = [];
+
+        function init() {
+            particles = [];
+            const count = Math.floor((canvas.width * canvas.height) / 9000);
+            for (let i = 0; i < count; i++) {
+                const size = Math.random() * 2.5 + 1;
+                particles.push(new Particle(
+                    Math.random() * (canvas.width  - size*4) + size*2,
+                    Math.random() * (canvas.height - size*4) + size*2,
+                    (Math.random() * 2) - 1,
+                    (Math.random() * 2) - 1,
+                    size
+                ));
+            }
+        }
+
+        function spawnBurst(cx, cy, n) {
+            for (let i = 0; i < n; i++) {
+                const size = Math.random() * 2.5 + 1;
+                particles.push(new Particle(cx, cy, (Math.random()*6)-3, (Math.random()*6)-3, size));
+            }
+            if (particles.length > 500) particles.splice(0, particles.length - 500);
+        }
+
+        function connect() {
+            const maxDistSq = settings.connectionDistance ** 2;
+            for (let a = 0; a < particles.length; a++) {
+                for (let b = a + 1; b < particles.length; b++) {
+                    const distSq = (particles[a].x - particles[b].x) ** 2
+                                 + (particles[a].y - particles[b].y) ** 2;
+                    if (distSq < maxDistSq) {
+                        const t = 1 - distSq / maxDistSq;
+                        ctx.save();
+                        if (t > 0.65) {
+                            ctx.strokeStyle = `rgba(0,0,0,${(t * 0.9).toFixed(2)})`;
+                            ctx.lineWidth   = 2;
+                        } else {
+                            ctx.strokeStyle = `rgba(${hexToRgb(settings.color)},${(t * 0.55).toFixed(2)})`;
+                            ctx.lineWidth   = 0.8;
+                        }
+                        ctx.beginPath();
+                        ctx.moveTo(particles[a].x, particles[a].y);
+                        ctx.lineTo(particles[b].x, particles[b].y);
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                }
+            }
+        }
+
+        /* ── Loop with pause/resume ── */
+        let rafId   = null;
+        let running = false;
+
+        function loop() {
+            ctx.fillStyle = 'rgba(10,10,10,0.22)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            for (const p of particles) p.update();
+            connect();
+            rafId = requestAnimationFrame(loop);
+        }
+
+        function startAnim() { if (!running) { running = true; loop(); } }
+        function stopAnim()  { running = false; if (rafId) { cancelAnimationFrame(rafId); rafId = null; } }
+
+        document.addEventListener('visibilitychange', () => {
+            document.hidden ? stopAnim() : startAnim();
+        });
+
+        init();
+        startAnim();
+    </script>
+</body>
+
+</html>

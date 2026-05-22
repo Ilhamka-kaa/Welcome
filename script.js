@@ -21,7 +21,7 @@ const CONFIG = {
   REVEAL_DELAY_START: 80,
   REVEAL_DELAY_STEP: 52,
   CURSOR_EASING: 0.11,
-  DRAG_OPACITY_EASING: 0.45,
+  DRAG_OPACITY_EASING: 1.0,
   DRAG_SCALE_EASING: 0.06,
 };
 
@@ -89,7 +89,7 @@ function getDirection(from, to) {
  */
 function transitionToPage(toIdx, direction) {
   if (state.animating || toIdx === state.current || !isValidPageIndex(toIdx)) return;
-  
+
   state.animating = true;
 
   const fromPage = pages[state.current];
@@ -214,8 +214,8 @@ function setupDragPagePositions(targetIdx, dir) {
 
   clearPageClasses(toPage);
   toPage.style.transition = 'none';
-  toPage.style.transform = dir > 0 
-    ? 'translateX(100%) scale(0.96)' 
+  toPage.style.transform = dir > 0
+    ? 'translateX(100%) scale(0.96)'
     : 'translateX(-100%) scale(0.96)';
   toPage.style.opacity = '1';
   toPage.style.zIndex = '12';
@@ -276,7 +276,7 @@ function endDragOperation(e) {
   if (!state.drag) return;
 
   const shouldCommit = state.drag.progress >= CONFIG.DRAG_THRESHOLD;
-  
+
   document.body.style.userSelect = '';
   cursorEl.classList.remove('small');
   cursorRingEl.classList.remove('big');
@@ -303,7 +303,7 @@ function commitDragTransition() {
 
   fromPage.style.transition = transitionCSS;
   fromPage.style.transform = 'translateX(0) scale(0.94)';
-  fromPage.style.opacity = '0.55';
+  fromPage.style.opacity = '0';
   fromPage.querySelector('.page-dimmer').style.transition = transitionCSS;
   fromPage.querySelector('.page-dimmer').style.background = 'rgba(0,0,0,.28)';
 
@@ -329,8 +329,8 @@ function snapBackFromDrag() {
   const transitionCSS = `transform var(--dur) var(--ease), opacity var(--dur) var(--ease)`;
 
   toPage.style.transition = transitionCSS;
-  toPage.style.transform = state.drag.dir > 0 
-    ? 'translateX(100%) scale(0.96)' 
+  toPage.style.transform = state.drag.dir > 0
+    ? 'translateX(100%) scale(0.96)'
     : 'translateX(-100%) scale(0.96)';
   toPage.style.opacity = '0';
 
@@ -385,16 +385,16 @@ function updateProgressDots() {
 
     if (isDarkPage) {
       // Light page → dark dots
-      d.style.background = i === state.current 
-        ? 'rgba(10,10,10,.7)' 
+      d.style.background = i === state.current
+        ? 'rgba(10,10,10,.7)'
         : 'rgba(10,10,10,.18)';
       d.style.borderColor = i === state.current
         ? '#0a0a0a'
         : 'rgba(10,10,10,.25)';
     } else {
       // Dark pages → yellow dots
-      d.style.background = i === state.current 
-        ? '#ffeb3b' 
+      d.style.background = i === state.current
+        ? '#ffeb3b'
         : 'rgba(255,235,59,.18)';
       d.style.borderColor = i === state.current
         ? '#ffeb3b'
@@ -411,8 +411,8 @@ function updateScrollLine() {
   const progress = (state.current / (CONFIG.TOTAL_PAGES - 1)) * 100;
 
   scrollLine.style.width = progress + '%';
-  scrollLine.style.background = isDarkPage 
-    ? 'rgba(10,10,10,.35)' 
+  scrollLine.style.background = isDarkPage
+    ? 'rgba(10,10,10,.35)'
     : '#ffeb3b';
   scrollLine.style.boxShadow = isDarkPage
     ? 'none'
@@ -493,10 +493,10 @@ function trackMouseMove(e) {
 function animateCursorRing() {
   cursorState.rx += (cursorState.mx - cursorState.rx) * CONFIG.CURSOR_EASING;
   cursorState.ry += (cursorState.my - cursorState.ry) * CONFIG.CURSOR_EASING;
-  
+
   cursorRingEl.style.left = cursorState.rx + 'px';
   cursorRingEl.style.top = cursorState.ry + 'px';
-  
+
   requestAnimationFrame(animateCursorRing);
 }
 
@@ -638,11 +638,11 @@ function initializeEventListeners() {
  */
 async function loadPageContent(pageIdx) {
   const pageFile = `pages/page${pageIdx + 1}.html`;
-  
+
   try {
     const response = await fetch(pageFile);
     if (!response.ok) throw new Error(`Failed to load ${pageFile}`);
-    
+
     const html = await response.text();
     pages[pageIdx].innerHTML = html;
   } catch (error) {
@@ -687,25 +687,25 @@ function openGameModal(gameFile, gameTitle) {
   const modal = document.getElementById('gameModal');
   const modalContent = document.getElementById('gameModalContent');
   const modalTitle = document.getElementById('gameModalTitle');
-  
+
   // Update title
   modalTitle.textContent = gameTitle;
-  
+
   // Clear previous content
   modalContent.innerHTML = '';
-  
+
   // Create iframe for the game
   const iframe = document.createElement('iframe');
   iframe.className = 'game-modal-frame';
   iframe.src = `game/${gameFile}`;
   iframe.allow = 'fullscreen; accelerometer; gyroscope';
-  
+
   modalContent.appendChild(iframe);
-  
+
   // Show modal
   modal.classList.add('active');
   document.body.style.overflow = 'hidden';
-  
+
   // Hide custom cursor and show default cursor for game
   cursorEl.style.display = 'none';
   cursorRingEl.style.display = 'none';
@@ -720,7 +720,7 @@ function closeGameModal() {
   modal.classList.remove('active');
   document.getElementById('gameModalContent').innerHTML = '';
   document.body.style.overflow = '';
-  
+
   // Restore custom cursor
   if (!('ontouchstart' in window)) {
     cursorEl.style.display = 'block';
@@ -735,23 +735,180 @@ function closeGameModal() {
 function setupGameModalListeners() {
   const closeBtn = document.getElementById('gameModalClose');
   const modal = document.getElementById('gameModal');
-  
+
   // Close button
   closeBtn.addEventListener('click', closeGameModal);
-  
+
   // Close on ESC key
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && modal.classList.contains('active')) {
       closeGameModal();
     }
   });
-  
+
   // Close on modal background click (optional - only if clicking outside content)
   modal.addEventListener('click', (e) => {
     if (e.target === modal) {
       closeGameModal();
     }
   });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// COMMENTS HANDLER (Page 3)
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Setup comments handling for Page 3 (Contact & Feedback)
+ */
+function setupCommentsHandler() {
+  const form = document.getElementById('comment-form');
+  const commentsList = document.getElementById('comments-list');
+  const countEl = document.getElementById('comment-count');
+
+  if (!form || !commentsList) return;
+
+  const STORAGE_KEY = 'ihk_portfolio_comments';
+
+  // Load comments from localStorage
+  let comments = [];
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      comments = JSON.parse(stored);
+      if (comments.length > 5) {
+        comments = comments.slice(-5);
+      }
+    }
+  } catch (e) {
+    console.error('Error loading comments:', e);
+  }
+
+  // Populate with some starter default comments if empty
+  if (comments.length === 0) {
+    comments = [
+      {
+        id: 1,
+        author: 'SYSTEM_BOT',
+        text: 'Welcome to the comment section! Send a transmission.',
+        time: new Date(Date.now() - 3600000 * 2).toISOString() // 2 hours ago
+      },
+      {
+        id: 2,
+        author: 'ANON_DEV',
+        text: 'This website is extremely brutal. Love the custom cursor and page transitions!',
+        time: new Date(Date.now() - 1800000).toISOString() // 30 mins ago
+      }
+    ];
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(comments));
+    } catch (_) {}
+  }
+
+  function renderComments() {
+    commentsList.innerHTML = '';
+    
+    // Sort comments: newest first
+    const sortedComments = [...comments].sort((a, b) => new Date(b.time) - new Date(a.time));
+    
+    if (countEl) {
+      countEl.textContent = sortedComments.length;
+    }
+
+    if (sortedComments.length === 0) {
+      commentsList.innerHTML = '<div class="no-comments-msg">No transmission received. Be the first to comment.</div>';
+      return;
+    }
+
+    sortedComments.forEach(comment => {
+      const card = document.createElement('div');
+      card.className = 'comment-card';
+
+      const meta = document.createElement('div');
+      meta.className = 'comment-meta';
+
+      const author = document.createElement('span');
+      author.className = 'comment-author-name';
+      author.textContent = comment.author;
+
+      const time = document.createElement('span');
+      time.className = 'comment-time';
+      time.textContent = formatCommentTime(comment.time);
+
+      meta.appendChild(author);
+      meta.appendChild(time);
+
+      const body = document.createElement('div');
+      body.className = 'comment-body';
+      body.textContent = comment.text;
+
+      card.appendChild(meta);
+      card.appendChild(body);
+      commentsList.appendChild(card);
+    });
+  }
+
+  function formatCommentTime(isoString) {
+    try {
+      const date = new Date(isoString);
+      const hours = String(date.getHours()).padStart(2, '0');
+      const mins = String(date.getMinutes()).padStart(2, '0');
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return `${hours}:${mins} | ${date.getDate()} ${months[date.getMonth()]}`;
+    } catch (e) {
+      return 'JUST NOW';
+    }
+  }
+
+  // Handle Form Submission
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const authorInput = document.getElementById('comment-author');
+    const textInput = document.getElementById('comment-text');
+
+    if (!authorInput || !textInput) return;
+
+    const newComment = {
+      id: Date.now(),
+      author: authorInput.value.trim() || 'ANONYMOUS',
+      text: textInput.value.trim(),
+      time: new Date().toISOString()
+    };
+
+    comments.push(newComment);
+    
+    // Keep only the latest 5 comments
+    if (comments.length > 5) {
+      comments = comments.slice(-5);
+    }
+    
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(comments));
+    } catch (err) {
+      console.error('Failed to save to localStorage:', err);
+    }
+
+    renderComments();
+
+    // Reset inputs
+    authorInput.value = '';
+    textInput.value = '';
+
+    // Submit effect on the button
+    const btn = form.querySelector('.comment-submit-btn span');
+    if (btn) {
+      const originalText = btn.textContent;
+      btn.textContent = '[ SENT SUCCESSFUL ]';
+      btn.style.color = '#76ff03'; // neon green
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.style.color = '';
+      }, 1500);
+    }
+  });
+
+  renderComments();
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -763,9 +920,158 @@ async function initialize() {
   initializeEventListeners();
   setupGameModalListeners();
   setupGameCardListeners();
+  setupCommentsHandler();
+  setupBackgroundBridge();
   updateUI();
   setTimeout(() => revealPage(0), 100);
 }
 
 // Start the app
 initialize();
+
+// ═══════════════════════════════════════════════════════════════
+// BACKGROUND BRIDGE — Mouse forwarding + Control Panel for Page 1
+// ═══════════════════════════════════════════════════════════════
+
+function setupBackgroundBridge() {
+  const wrap         = document.getElementById('bg-panel-wrap');
+  const toggleBtn    = document.getElementById('bg-panel-toggle');
+  const panel        = document.getElementById('bgPanel');
+  const closeBtn     = document.getElementById('bgPanelClose');
+  const colorInput   = document.getElementById('bgColor');
+  const speedInput   = document.getElementById('bgSpeed');
+  const speedVal     = document.getElementById('bgSpeedVal');
+  const connectInput = document.getElementById('bgConnect');
+  const connectVal   = document.getElementById('bgConnectVal');
+  const radiusInput  = document.getElementById('bgRadius');
+  const radiusVal    = document.getElementById('bgRadiusVal');
+  const resetBtn     = document.getElementById('bgReset');
+
+  if (!wrap) return; // panel not in DOM yet
+
+  /* ── Helper: get iframe contentWindow safely ── */
+  function sendMsgToFrame(frameId, data) {
+    const frame = document.getElementById(frameId);
+    try {
+      if (frame && frame.contentWindow) {
+        frame.contentWindow.postMessage(data, '*');
+      }
+    } catch (_) {}
+  }
+
+  function sendMsg(data) {
+    sendMsgToFrame('p1-bg-frame', data);
+  }
+
+  /* ── Mouse forwarding: stage → iframe ── */
+  const stage = document.getElementById('stage');
+  if (stage) {
+    stage.addEventListener('pointermove', (e) => {
+      if (state.current !== 0) return; // only for page 1
+      const frame = document.getElementById('p1-bg-frame');
+      if (!frame) return;
+      const rect = frame.getBoundingClientRect();
+      sendMsg({ type: 'mousemove', x: e.clientX - rect.left, y: e.clientY - rect.top });
+    }, { passive: true });
+
+    stage.addEventListener('pointerleave', () => {
+      if (state.current === 0) {
+        sendMsg({ type: 'mouseleave' });
+      }
+    });
+
+    stage.addEventListener('click', (e) => {
+      if (state.current === 0) {
+        // Don't spawn particles when clicking on UI elements
+        if (e.target.closest('.page-content, .industrial-corner, #bg-panel-wrap')) return;
+        const frame = document.getElementById('p1-bg-frame');
+        if (!frame) return;
+        const rect = frame.getBoundingClientRect();
+        sendMsg({ type: 'click', x: e.clientX - rect.left, y: e.clientY - rect.top });
+      } else if (state.current === 1) {
+        // Page 2 interactive grid click
+        // Don't trigger cell explosion when clicking on cards, placeholders, tags, or page navigation elements
+        if (e.target.closest('.game-card, .game-card-placeholder, .swipe-hint, .page-num, .corner-tag, .hero-title-ihk, .hero-desc, .status-indicator')) return;
+        
+        const frame = document.getElementById('p2-bg-frame');
+        if (!frame) return;
+        const rect = frame.getBoundingClientRect();
+        sendMsgToFrame('p2-bg-frame', { type: 'click', x: e.clientX - rect.left, y: e.clientY - rect.top });
+      }
+    });
+  }
+
+  /* ── Panel show/hide on page change ── */
+  function updatePanelVisibility() {
+    if (state.current === 0) {
+      wrap.classList.add('bg-panel-visible');
+    } else {
+      wrap.classList.remove('bg-panel-visible');
+      panel.classList.remove('open'); // close panel when leaving page 1
+    }
+  }
+
+  // Override finalizeTransition to hook visibility update
+  const _origFinalizeTransition = window._bgBridgeFinalizeHooked;
+  if (!_origFinalizeTransition) {
+    window._bgBridgeFinalizeHooked = true;
+    // Poll state.current changes to update visibility and performance state
+    let lastPage = -1;
+    function checkPageChange() {
+      if (state.current !== lastPage) {
+        if (state.current === 0) {
+          sendMsgToFrame('p1-bg-frame', { type: 'resume' });
+          sendMsgToFrame('p2-bg-frame', { type: 'pause' });
+        } else if (state.current === 1) {
+          sendMsgToFrame('p1-bg-frame', { type: 'pause' });
+          sendMsgToFrame('p2-bg-frame', { type: 'resume' });
+        } else {
+          sendMsgToFrame('p1-bg-frame', { type: 'pause' });
+          sendMsgToFrame('p2-bg-frame', { type: 'pause' });
+        }
+        
+        lastPage = state.current;
+        updatePanelVisibility();
+      }
+      requestAnimationFrame(checkPageChange);
+    }
+    checkPageChange();
+  }
+
+  /* ── Toggle panel open/close ── */
+  toggleBtn.addEventListener('click', () => {
+    panel.classList.toggle('open');
+  });
+
+  closeBtn.addEventListener('click', () => {
+    panel.classList.remove('open');
+  });
+
+  /* ── Control inputs → postMessage to iframe ── */
+  colorInput.addEventListener('input', (e) => {
+    sendMsg({ type: 'settings', color: e.target.value });
+  });
+
+  speedInput.addEventListener('input', (e) => {
+    const v = parseFloat(e.target.value).toFixed(1);
+    speedVal.textContent = v;
+    sendMsg({ type: 'settings', speed: parseFloat(v) });
+  });
+
+  connectInput.addEventListener('input', (e) => {
+    connectVal.textContent = e.target.value;
+    sendMsg({ type: 'settings', connectionDistance: parseInt(e.target.value) });
+  });
+
+  radiusInput.addEventListener('input', (e) => {
+    radiusVal.textContent = e.target.value;
+    sendMsg({ type: 'settings', mouseRadius: parseInt(e.target.value) });
+  });
+
+  resetBtn.addEventListener('click', () => {
+    sendMsg({ type: 'reset' });
+  });
+
+  // Set initial visibility (starts on page 0 = page 1)
+  updatePanelVisibility();
+}
