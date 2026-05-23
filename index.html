@@ -7,16 +7,76 @@
   <title>IHK-Project</title>
   <link rel="icon" type="image/png" href="assets/logo_square.png?v=1.0.1">
   <link rel="shortcut icon" type="image/png" href="assets/logo_square.png?v=1.0.1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-  <div id="cur"></div>
-  <div id="cur-ring"></div>
+  <div id="cur" style="display: none;"></div>
+  <div id="cur-ring" style="display: none;"></div>
+
+  <!-- OPENING ANIMATION OVERLAY -->
+  <div id="opening-overlay">
+    <canvas id="intro-canvas"></canvas>
+    
+    <div class="welcome-container" id="welcome-container">
+      <div class="minimal-loader">
+        
+        <!-- Elegant 3D Concentric Dual Cube Loader -->
+        <div class="cube-wrapper">
+          <!-- Outer Cube -->
+          <div class="cube-outer">
+            <div class="face front"></div>
+            <div class="face back"></div>
+            <div class="face right"></div>
+            <div class="face left"></div>
+            <div class="face top"></div>
+            <div class="face bottom"></div>
+          </div>
+          <!-- Inner Cube -->
+          <div class="cube-inner" id="cube-inner">
+            <div class="face front"></div>
+            <div class="face back"></div>
+            <div class="face right"></div>
+            <div class="face left"></div>
+            <div class="face top"></div>
+            <div class="face bottom"></div>
+          </div>
+          <!-- Core Node -->
+          <div class="cube-core" id="cube-core"></div>
+        </div>
+
+        <!-- Elegant thin divider line -->
+        <div class="elegant-divider">
+          <span class="divider-tick-left">+</span>
+          <div class="divider-line"></div>
+          <span class="divider-tick-right">+</span>
+        </div>
+
+        <!-- Typography welcome lines -->
+        <div class="welcome-text-wrap">
+          <div class="welcome-text-line" id="welcome-text">WELCOME</div>
+          <div class="welcome-subtext">SYSTEM INITIALIZED // IHK.PROJECT</div>
+        </div>
+
+        <!-- Smooth thin progress bar -->
+        <div class="progress-bar-container">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+
+        <div class="technical-stats">
+          <span class="stat-left">SYS.INIT.026</span>
+          <span class="stat-center" id="loader-text">00%</span>
+          <span class="stat-right">-6.9175°S</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div id="progress">
     <div class="dot active" data-i="0"></div>

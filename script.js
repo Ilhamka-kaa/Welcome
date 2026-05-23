@@ -31,6 +31,7 @@ let state = {
   drag: null,
   touchStart: null,
   wheelTimeout: null,
+  openingActive: true, // Block navigation during intro opening animation
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -88,7 +89,7 @@ function getDirection(from, to) {
  * Main transition function with animation
  */
 function transitionToPage(toIdx, direction) {
-  if (state.animating || toIdx === state.current || !isValidPageIndex(toIdx)) return;
+  if (state.openingActive || state.animating || toIdx === state.current || !isValidPageIndex(toIdx)) return;
 
   state.animating = true;
 
@@ -194,7 +195,7 @@ function prevPage() {
  * Initialize drag operation
  */
 function startDragOperation(e, side) {
-  if (state.animating) return;
+  if (state.openingActive || state.animating) return;
 
   const x = getClientX(e);
   const dir = side === 'right' ? +1 : -1;
@@ -672,7 +673,7 @@ function setupKeyboardListeners() {
  */
 function setupWheelListeners() {
   document.addEventListener('wheel', (e) => {
-    if (state.wheelTimeout || state.animating) return;
+    if (state.openingActive || state.wheelTimeout || state.animating) return;
 
     // Ignore wheel navigation if scrolling inside active scrollable containers
     if (isInsideScrollable(e)) return;
@@ -1024,7 +1025,440 @@ function setupCommentsHandler() {
 // BOOTSTRAP
 // ═══════════════════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════════════════
+// WEBSITE OPENING SCREEN TRANSITION
+// ═══════════════════════════════════════════════════════════════
+
+function initOpeningAnimation() {
+  const overlay = document.getElementById('opening-overlay');
+  if (!overlay) return;
+  const welcomeContainer = document.getElementById('welcome-container');
+  const canvas = document.getElementById('intro-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  let openingState = 'welcome';
+  let width = canvas.width = window.innerWidth;
+  let height = canvas.height = window.innerHeight;
+
+  const gridCols = 16;
+  const gridRows = 10;
+  let cellW = width / gridCols;
+  let cellH = height / gridRows;
+
+  const revealed = Array(gridCols).fill().map(() => Array(gridRows).fill(false));
+
+  const handleResize = () => {
+    if (openingState === 'done') return;
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+    cellW = width / gridCols;
+    cellH = height / gridRows;
+  };
+  window.addEventListener('resize', handleResize);
+
+  const tetrominoes = [
+    { shape: [[1]], color: '#00E5FF' }, // Cyan
+    { shape: [[1]], color: '#FFA726' }, // Gold
+    { shape: [[1]], color: '#FF3333' }, // Red
+    { shape: [[1]], color: '#4CAF50' }, // Green
+    { shape: [[1]], color: '#E91E63' }, // Pink
+    { shape: [[1]], color: '#FF5722' }, // Orange
+    { shape: [[1]], color: '#9C27B0' }  // Purple
+  ];
+
+  const fallingBlocks = [];
+  const particles = [];
+  let availableCols = [];
+  let cascadeInterval = null;
+  let animationFrameId = null;
+
+  class Block {
+    constructor(tetromino, col) {
+      this.shape = tetromino.shape;
+      this.color = tetromino.color;
+      this.col = col;
+      this.width = this.shape[0].length;
+      this.height = this.shape.length;
+      this.y = -this.height * cellH;
+      this.speed = Math.random() * 3 + 6;
+      this.landed = false;
+      
+      this.nodes = [];
+      for (let r = 0; r < this.height; r++) {
+        for (let c = 0; c < this.width; c++) {
+          if (this.shape[r][c]) {
+            const cellX = c * cellW;
+            const cellY = r * cellH;
+            for (let i = 0; i < 3; i++) {
+              this.nodes.push({
+                c: c,
+                r: r,
+                rx: cellX + Math.random() * cellW,
+                ry: cellY + Math.random() * cellH,
+                vx: (Math.random() - 0.5) * 0.4,
+                vy: (Math.random() - 0.5) * 0.4
+              });
+            }
+          }
+        }
+      }
+    }
+
+    update() {
+      if (this.landed) return;
+
+      const oldStartRow = Math.floor(this.y / cellH);
+      this.y += this.speed;
+      const newStartRow = Math.floor(this.y / cellH);
+
+      for (let startRow = Math.max(0, oldStartRow); startRow <= newStartRow; startRow++) {
+        for (let r = 0; r < this.height; r++) {
+          for (let c = 0; c < this.width; c++) {
+            if (this.shape[r][c]) {
+              const gridCol = this.col + c;
+              const gridRow = startRow + r;
+              if (gridCol >= 0 && gridCol < gridCols && gridRow >= 0 && gridRow < gridRows) {
+                revealed[gridCol][gridRow] = true;
+              }
+            }
+          }
+        }
+      }
+
+      this.nodes.forEach(node => {
+        node.rx += node.vx;
+        node.ry += node.vy;
+        const cellX = node.c * cellW;
+        const cellY = node.r * cellH;
+        if (node.rx < cellX || node.rx > cellX + cellW) node.vx *= -1;
+        if (node.ry < cellY || node.ry > cellY + cellH) node.vy *= -1;
+      });
+
+      if (this.y + this.height * cellH >= height) {
+        this.y = height - this.height * cellH;
+        this.landed = true;
+        this.onLand();
+      }
+    }
+
+    onLand() {
+      const currentX = this.col * cellW;
+      for (let i = 0; i < 12; i++) {
+        particles.push(new Particle(
+          currentX + Math.random() * (this.width * cellW),
+          this.y + (this.height * cellH) - Math.random() * 5,
+          this.color
+        ));
+      }
+
+      const finalRow = Math.floor(this.y / cellH);
+      for (let r = 0; r < this.height; r++) {
+        for (let c = 0; c < this.width; c++) {
+          const gridCol = this.col + c;
+          const gridRow = finalRow + r;
+          if (gridCol >= 0 && gridCol < gridCols && gridRow >= 0 && gridRow < gridRows) {
+            if (this.shape[r][c]) {
+              revealed[gridCol][gridRow] = true;
+            }
+          }
+        }
+      }
+    }
+
+    draw() {
+      ctx.save();
+      const currentX = this.col * cellW;
+
+      for (let r = 0; r < this.height; r++) {
+        for (let c = 0; c < this.width; c++) {
+          if (this.shape[r][c]) {
+            const cx = currentX + c * cellW;
+            const cy = this.y + r * cellH;
+
+            ctx.fillStyle = 'rgba(12, 12, 16, 0.9)';
+            ctx.fillRect(cx, cy, cellW, cellH);
+
+            ctx.save();
+            ctx.shadowColor = this.color;
+            ctx.shadowBlur = 10;
+            ctx.strokeStyle = this.color;
+            ctx.lineWidth = 1;
+            ctx.strokeRect(cx, cy, cellW, cellH);
+            ctx.restore();
+          }
+        }
+      }
+
+      ctx.save();
+      ctx.translate(currentX, this.y);
+      ctx.strokeStyle = this.color;
+      ctx.lineWidth = 0.5;
+      
+      for (let i = 0; i < this.nodes.length; i++) {
+        for (let j = i + 1; j < this.nodes.length; j++) {
+          const n1 = this.nodes[i];
+          const n2 = this.nodes[j];
+          const dx = n1.rx - n2.rx;
+          const dy = n1.ry - n2.ry;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          
+          if (dist < cellW * 1.3) {
+            ctx.strokeStyle = `rgba(${hexToRgb(this.color)}, ${0.25 * (1 - dist / (cellW * 1.3))})`;
+            ctx.beginPath();
+            ctx.moveTo(n1.rx, n1.ry);
+            ctx.lineTo(n2.rx, n2.ry);
+            ctx.stroke();
+          }
+        }
+      }
+
+      this.nodes.forEach(node => {
+        ctx.fillStyle = this.color;
+        ctx.fillRect(node.rx - 1, node.ry - 1, 2, 2);
+      });
+      ctx.restore();
+      ctx.restore();
+    }
+  }
+
+  function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '255, 255, 255';
+  }
+
+  class Particle {
+    constructor(x, y, color) {
+      this.x = x;
+      this.y = y;
+      this.vx = (Math.random() - 0.5) * 8;
+      this.vy = (Math.random() - 1.5) * 6;
+      this.length = Math.random() * 8 + 4;
+      this.color = color;
+      this.alpha = 1;
+      this.gravity = 0.15;
+    }
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.vy += this.gravity;
+      this.alpha -= 0.03;
+    }
+    draw() {
+      ctx.save();
+      ctx.globalAlpha = this.alpha;
+      ctx.strokeStyle = this.color;
+      ctx.lineWidth = 1.5;
+      
+      const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+      const dx = (this.vx / speed) * this.length;
+      const dy = (this.vy / speed) * this.length;
+      
+      ctx.beginPath();
+      ctx.moveTo(this.x - dx, this.y - dy);
+      ctx.lineTo(this.x, this.y);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  function startCascade() {
+    cascadeInterval = setInterval(() => {
+      if (openingState !== 'cascade') return;
+
+      if (availableCols.length > 0) {
+        const randIdx = Math.floor(Math.random() * availableCols.length);
+        const col = availableCols.splice(randIdx, 1)[0];
+        
+        const tet = tetrominoes[Math.floor(Math.random() * tetrominoes.length)];
+        fallingBlocks.push(new Block(tet, col));
+      }
+
+      if (availableCols.length === 0 && fallingBlocks.length === 0) {
+        openingState = 'wipe';
+        clearInterval(cascadeInterval);
+        setTimeout(completeTransition, 400);
+      }
+    }, 160);
+  }
+
+  function completeTransition() {
+    openingState = 'done';
+    state.openingActive = false; // Allow page navigation now that intro is done
+    overlay.style.opacity = '0';
+    
+    setTimeout(() => {
+      overlay.remove();
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('keydown', handleKeyDown);
+      
+      if (!('ontouchstart' in window)) {
+        const cursorEl = document.getElementById('cur');
+        const cursorRingEl = document.getElementById('cur-ring');
+        if (cursorEl) cursorEl.style.display = 'block';
+        if (cursorRingEl) cursorRingEl.style.display = 'block';
+        document.body.style.cursor = 'none';
+      }
+
+      revealPage(0);
+    }, 800);
+  }
+
+  function triggerStart() {
+    if (openingState !== 'welcome') return;
+
+    welcomeContainer.style.opacity = '0';
+    welcomeContainer.style.transform = 'translate(-50%, -50%) scale(0.95)';
+
+    availableCols = Array.from({ length: gridCols }, (_, i) => i);
+    openingState = 'cascade';
+    startCascade();
+  }
+
+  let progress = 0;
+  const loaderText = document.getElementById('loader-text');
+  const progressFill = document.getElementById('progress-fill');
+  const welcomeTextEl = document.getElementById('welcome-text');
+  const cubeInner = document.getElementById('cube-inner');
+  const cubeCore = document.getElementById('cube-core');
+
+  function updateLoader() {
+    if (progress < 100) {
+      progress += Math.random() * 1.1 + 0.45;
+      if (progress > 100) progress = 100;
+      
+      if (loaderText) loaderText.textContent = String(Math.floor(progress)).padStart(2, '0') + '%';
+      if (progressFill) progressFill.style.width = progress + '%';
+
+      if (cubeInner && cubeCore) {
+        const glowVal = 0.15 + (progress / 100) * 0.75;
+        cubeInner.style.setProperty('--inner-glow', glowVal);
+        cubeCore.style.setProperty('--inner-glow', glowVal);
+      }
+      
+      requestAnimationFrame(updateLoader);
+    } else {
+      if (progressFill) progressFill.style.width = '100%';
+      if (loaderText) loaderText.textContent = '100%';
+
+      if (cubeInner && cubeCore) {
+        cubeInner.style.setProperty('--inner-glow', '0.9');
+        cubeCore.style.setProperty('--inner-glow', '0.9');
+      }
+      
+      if (welcomeTextEl) welcomeTextEl.classList.add('active');
+      
+      setTimeout(() => {
+        triggerStart();
+      }, 850);
+    }
+  }
+
+  setTimeout(updateLoader, 200);
+
+  const handleSkip = () => {
+    if (progress < 100) {
+      progress = 100;
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.code === 'Space' || e.code === 'Enter') {
+      handleSkip();
+    }
+  };
+  window.addEventListener('keydown', handleKeyDown);
+
+  overlay.addEventListener('click', handleSkip);
+
+  function animate() {
+    ctx.clearRect(0, 0, width, height);
+
+    ctx.save();
+    ctx.fillStyle = '#0A0A0C';
+    for (let c = 0; c < gridCols; c++) {
+      for (let r = 0; r < gridRows; r++) {
+        if (!revealed[c][r]) {
+          const x = c * cellW;
+          const y = r * cellH;
+          ctx.fillRect(x - 0.5, y - 0.5, cellW + 1, cellH + 1);
+        }
+      }
+    }
+
+    ctx.shadowColor = 'rgba(255, 167, 38, 0.5)';
+    ctx.shadowBlur = 12;
+    ctx.lineWidth = 1.5;
+    
+    for (let c = 0; c < gridCols; c++) {
+      for (let r = 0; r < gridRows; r++) {
+        if (!revealed[c][r]) {
+          const x = c * cellW;
+          const y = r * cellH;
+
+          if (c > 0 && revealed[c - 1][r]) {
+            ctx.strokeStyle = '#FFA726';
+            ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + cellH); ctx.stroke();
+            ctx.strokeStyle = 'rgba(255, 50, 50, 0.4)';
+            ctx.beginPath(); ctx.moveTo(x + 2, y); ctx.lineTo(x + 2, y + cellH); ctx.stroke();
+          }
+          if (c < gridCols - 1 && revealed[c + 1][r]) {
+            ctx.strokeStyle = '#FFA726';
+            ctx.beginPath(); ctx.moveTo(x + cellW, y); ctx.lineTo(x + cellW, y + cellH); ctx.stroke();
+            ctx.strokeStyle = 'rgba(255, 50, 50, 0.4)';
+            ctx.beginPath(); ctx.moveTo(x + cellW - 2, y); ctx.lineTo(x + cellW - 2, y + cellH); ctx.stroke();
+          }
+          if (r > 0 && revealed[c][r - 1]) {
+            ctx.strokeStyle = '#FFA726';
+            ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + cellW, y); ctx.stroke();
+            ctx.strokeStyle = 'rgba(255, 50, 50, 0.4)';
+            ctx.beginPath(); ctx.moveTo(x, y + 2); ctx.lineTo(x + cellW, y + 2); ctx.stroke();
+          }
+          if (r < gridRows - 1 && revealed[c][r + 1]) {
+            ctx.strokeStyle = '#FFA726';
+            ctx.beginPath(); ctx.moveTo(x, y + cellH); ctx.lineTo(x + cellW, y + cellH); ctx.stroke();
+            ctx.strokeStyle = 'rgba(255, 50, 50, 0.4)';
+            ctx.beginPath(); ctx.moveTo(x, y + cellH - 2); ctx.lineTo(x + cellW, y + cellH - 2); ctx.stroke();
+          }
+        }
+      }
+    }
+    ctx.restore();
+
+    if (openingState === 'cascade' || openingState === 'wipe') {
+      for (let i = fallingBlocks.length - 1; i >= 0; i--) {
+        const block = fallingBlocks[i];
+        block.update();
+        block.draw();
+        if (block.landed) {
+          fallingBlocks.splice(i, 1);
+        }
+      }
+    }
+
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.update();
+      p.draw();
+      if (p.alpha <= 0) {
+        particles.splice(i, 1);
+      }
+    }
+
+    animationFrameId = requestAnimationFrame(animate);
+  }
+
+  animate();
+}
+
 async function initialize() {
+  const cursorEl = document.getElementById('cur');
+  const cursorRingEl = document.getElementById('cur-ring');
+  if (cursorEl) cursorEl.style.display = 'none';
+  if (cursorRingEl) cursorRingEl.style.display = 'none';
+  document.body.style.cursor = 'default';
+
   await loadAllPages();
   initializeEventListeners();
   setupGameModalListeners();
@@ -1036,7 +1470,7 @@ async function initialize() {
   // Pause/resume backgrounds correctly on start (page 1 running, page 2 paused)
   handleBackgroundTransitionComplete(0);
 
-  setTimeout(() => revealPage(0), 100);
+  initOpeningAnimation();
 }
 
 // Start the app
