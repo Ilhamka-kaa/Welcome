@@ -3368,7 +3368,11 @@ h2 {
   }
 }
 
-/* Hide navigation and UI controls during opening */
+/* Hide stage and UI controls during opening phases */
+body.opening-welcome #stage {
+  display: none !important;
+}
+
 body.opening-active .drag-zone,
 body.opening-active #progress,
 body.opening-active #scroll-line,

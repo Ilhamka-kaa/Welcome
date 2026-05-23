@@ -1309,6 +1309,8 @@ function initOpeningAnimation() {
   function triggerStart() {
     if (openingState !== 'welcome') return;
 
+    document.body.classList.remove('opening-welcome');
+
     welcomeContainer.style.opacity = '0';
     welcomeContainer.style.transform = 'translate(-50%, -50%) scale(0.95)';
 
