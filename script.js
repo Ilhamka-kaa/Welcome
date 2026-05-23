@@ -1285,6 +1285,7 @@ function initOpeningAnimation() {
   function completeTransition() {
     openingState = 'done';
     state.openingActive = false; // Allow page navigation now that intro is done
+    document.body.classList.remove('opening-active');
     overlay.style.opacity = '0';
     
     setTimeout(() => {

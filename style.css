@@ -3368,6 +3368,14 @@ h2 {
   }
 }
 
+/* Hide navigation and UI controls during opening */
+body.opening-active .drag-zone,
+body.opening-active #progress,
+body.opening-active #scroll-line,
+body.opening-active #bg-panel-wrap {
+  display: none !important;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    SECTION 26: WEBSITE OPENING SCREEN TRANSITION
    ═══════════════════════════════════════════════════════════════ */
