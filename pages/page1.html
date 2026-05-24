@@ -39,6 +39,7 @@
       <span>SYS.STATUS: ONLINE</span>
     </div>
 
+
     <div class="hero-row">
       <div class="hero-text">
         <p class="eyebrow">
@@ -109,16 +110,182 @@
             <span class="stat-sub">[ B.COMP.SCI ]</span>
           </div>
         </div>
+
+
       </div>
 
-      <!-- Avatar with Rivets -->
-      <div class="avatar-ring" aria-hidden="true">
-        <img class="avatar-image" src="assets/wuwa_C.gif" alt="Avatar" />
-        <div class="rivet rivet-tl"></div>
-        <div class="rivet rivet-tr"></div>
-        <div class="rivet rivet-bl"></div>
-        <div class="rivet rivet-br"></div>
+      <!-- Hero Right Aside (Console Grid & Avatar) -->
+      <div class="hero-aside">
+        <!-- Cyber Utilities Console Grid -->
+        <div class="cyber-console-wrap">
+          <div class="cyber-console-header">
+            <span class="header-line"></span>
+            <span class="header-title">// SYSTEM UTILITIES CONTROLLER</span>
+            <span class="header-line"></span>
+          </div>
+          <div class="cyber-console-grid">
+            <!-- Tool 1 -->
+            <button class="cyber-console-card" data-tool="pdf" aria-label="PDF to Word Tool">
+              <div class="console-card-header">
+                <span class="console-card-tag">[ SYS.UTIL.01 ]</span>
+                <span class="console-card-led"></span>
+              </div>
+              <div class="console-card-title">PDF TO WORD</div>
+              <div class="console-card-desc">Extract PDF text to Word</div>
+            </button>
+
+            <!-- Tool 2 -->
+            <button class="cyber-console-card" data-tool="translator" aria-label="Translator Tool">
+              <div class="console-card-header">
+                <span class="console-card-tag">[ SYS.UTIL.02 ]</span>
+                <span class="console-card-led"></span>
+              </div>
+              <div class="console-card-title">TRANSLATOR</div>
+              <div class="console-card-desc">Real-time ID ⇄ EN API</div>
+            </button>
+
+            <!-- Tool 3 -->
+            <button class="cyber-console-card" data-tool="bgremover" aria-label="Background Remover Tool">
+              <div class="console-card-header">
+                <span class="console-card-tag">[ SYS.UTIL.03 ]</span>
+                <span class="console-card-led"></span>
+              </div>
+              <div class="console-card-title">BG REMOVER</div>
+              <div class="console-card-desc">Canvas chroma background removal</div>
+            </button>
+
+            <!-- Tool 4 -->
+            <button class="cyber-console-card" data-tool="crypto" aria-label="Developer Cryptography Tool">
+              <div class="console-card-header">
+                <span class="console-card-tag">[ SYS.UTIL.04 ]</span>
+                <span class="console-card-led"></span>
+              </div>
+              <div class="console-card-title">DEV TOOLS</div>
+              <div class="console-card-desc">SHA-256 Hash & Base64</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Avatar with Rivets -->
+        <div class="avatar-ring" aria-hidden="true">
+          <img class="avatar-image" src="assets/wuwa_C.gif" alt="Avatar" />
+          <div class="rivet rivet-tl"></div>
+          <div class="rivet rivet-tr"></div>
+          <div class="rivet rivet-bl"></div>
+          <div class="rivet rivet-br"></div>
+        </div>
       </div>
+
+      <!-- ── SYSTEM TOOLS POPUP MODALS ── -->
+      <div class="brutal-modal" id="modal-pdf">
+        <div class="brutal-modal-dialog">
+          <div class="brutal-modal-header">
+            <span class="brutal-modal-title">// TOOL.INIT: PDF TO WORD</span>
+            <button class="brutal-modal-close" data-close="pdf">✕</button>
+          </div>
+          <div class="brutal-modal-body">
+            <div class="tool-panel-desc">Ekstrak teks dari file PDF Anda secara lokal dan unduh dalam format Word (.doc).</div>
+            <div class="tool-drop-zone" id="pdf-drop-zone">
+              <span class="drop-zone-icon">📁</span>
+              <span class="drop-zone-text">Pilih atau Seret file PDF di sini</span>
+              <input type="file" id="pdf-file-input" accept=".pdf" style="display: none;">
+            </div>
+            <div class="tool-file-info" id="pdf-file-info" style="display: none;">
+              <span class="file-name">file_name.pdf</span>
+              <button class="file-remove-btn" id="pdf-remove-btn">✕</button>
+            </div>
+            <button class="brutal-tool-btn" id="pdf-convert-btn" disabled style="width: 100%; margin-top: 10px;">[ CONVERT TO WORD ]</button>
+            <div class="tool-status" id="pdf-status"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="brutal-modal" id="modal-translator">
+        <div class="brutal-modal-dialog">
+          <div class="brutal-modal-header">
+            <span class="brutal-modal-title">// TOOL.INIT: TRANSLATOR ENGINE</span>
+            <button class="brutal-modal-close" data-close="translator">✕</button>
+          </div>
+          <div class="brutal-modal-body">
+            <div class="translator-row" style="margin-bottom: 12px;">
+              <select class="translator-select" id="trans-lang">
+                <option value="id|en">Indonesian ➔ English</option>
+                <option value="en|id">English ➔ Indonesian</option>
+              </select>
+            </div>
+            <div class="translator-io">
+              <textarea class="brutal-textarea" id="trans-input" placeholder="Masukkan teks di sini... (Maksimal 100 kata)" style="height: 100px; margin-bottom: 10px;"></textarea>
+              <textarea class="brutal-textarea readonly" id="trans-output" placeholder="Terjemahan..." readonly style="height: 100px; margin-bottom: 10px;"></textarea>
+            </div>
+            <button class="brutal-tool-btn" id="trans-btn" style="width: 100%;">[ TRANSLATE TEXT ]</button>
+            <div class="tool-status" id="trans-status"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="brutal-modal" id="modal-bgremover">
+        <div class="brutal-modal-dialog">
+          <div class="brutal-modal-header">
+            <span class="brutal-modal-title">// TOOL.INIT: BG REMOVER (CHROMA KEY)</span>
+            <button class="brutal-modal-close" data-close="bgremover">✕</button>
+          </div>
+          <div class="brutal-modal-body">
+            <div class="tool-panel-desc">Unggah gambar, klik pada bagian warna latar yang ingin dihapus pada preview canvas di bawah.</div>
+            
+            <div class="bgremover-controls" style="margin-bottom: 12px;">
+              <div class="tool-drop-zone" id="img-drop-zone">
+                <span class="drop-zone-icon">📷</span>
+                <span class="drop-zone-text">Upload Gambar (JPG/PNG)</span>
+                <input type="file" id="img-file-input" accept="image/*" style="display: none;">
+              </div>
+              
+              <div class="tolerance-control-group" style="display: none;" id="bg-controls-group">
+                <div class="tolerance-row">
+                  <label class="bg-ctrl-label">Sensitivitas (Tolerance)</label>
+                  <span class="bg-ctrl-val" id="bg-tolerance-val">20</span>
+                </div>
+                <input type="range" id="bg-tolerance" min="0" max="100" value="20" class="bg-range" style="margin-bottom: 10px;">
+                
+                <div class="color-picker-indicator-row">
+                  <span class="bg-ctrl-label">Warna Terpilih:</span>
+                  <div class="selected-color-box" id="selected-color-box" style="background-color: transparent;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Preview Canvas Area -->
+            <div class="canvas-preview-wrap" style="display: none; margin-bottom: 12px;" id="img-canvas-wrap">
+              <canvas id="remover-canvas"></canvas>
+              <div class="canvas-hint">// KLIK PADA GAMBAR UNTUK MEMILIH WARNA LATAR</div>
+            </div>
+
+            <button class="brutal-tool-btn" id="img-download-btn" disabled style="width: 100%;">[ DOWNLOAD TRANS-PNG ]</button>
+            <div class="tool-status" id="img-status"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="brutal-modal" id="modal-crypto">
+        <div class="brutal-modal-dialog">
+          <div class="brutal-modal-header">
+            <span class="brutal-modal-title">// TOOL.INIT: CRYPTO & ENCODER</span>
+            <button class="brutal-modal-close" data-close="crypto">✕</button>
+          </div>
+          <div class="brutal-modal-body">
+            <div class="translator-row" style="margin-bottom: 12px;">
+              <select class="translator-select" id="crypto-action">
+                <option value="sha256">SHA-256 Hash</option>
+                <option value="base64-encode">Base64 Encode</option>
+                <option value="base64-decode">Base64 Decode</option>
+              </select>
+            </div>
+            <div class="translator-io">
+              <textarea class="brutal-textarea" id="crypto-input" placeholder="Masukkan teks..." style="height: 90px; margin-bottom: 10px;"></textarea>
+              <textarea class="brutal-textarea readonly" id="crypto-output" placeholder="Hasil pemrosesan..." readonly style="height: 90px; margin-bottom: 10px;"></textarea>
+            </div>
+            <button class="brutal-tool-btn" id="crypto-btn" style="width: 100%;">[ GENERATE OUTPUT ]</button>
+          </div>
+        </div>
     </div>
   </div>
 

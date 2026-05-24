@@ -2694,7 +2694,14 @@ h2 {
   }
 
   .hero-text {
-    min-width: 250px;
+    flex: 1.2;
+    min-width: 320px;
+    max-width: 620px;
+  }
+
+  .hero-aside .cyber-console-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 14px;
   }
 
   .avatar-ring {
@@ -2824,7 +2831,7 @@ h2 {
 
 #bg-panel-wrap {
   position: absolute;
-  bottom: 500px;
+  bottom: 290px;
   right: clamp(16px, 2.5vw, 28px);
   z-index: 10005;
   display: flex;
@@ -3670,4 +3677,495 @@ body.opening-active #bg-panel-wrap {
 .stat-center {
   color: rgba(255, 255, 255, 0.7);
   font-weight: 500;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECTION 27: SYSTEM TOOLS HUB (NEO-BRUTALIST WIDGET)
+   ═══════════════════════════════════════════════════════════════ */
+.hero-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 240px;
+  margin-top: 1.5rem;
+}
+
+@media (min-width: 1025px) {
+  .hero-aside {
+    flex: 1;
+    width: 100%;
+    max-width: 480px;
+    margin-top: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+}
+
+/* ── Cyber Utilities Console Grid ── */
+.cyber-console-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 0.2rem;
+  margin-bottom: 1.5rem;
+  z-index: 10;
+}
+
+@media (min-width: 1025px) {
+  .cyber-console-wrap {
+    margin-top: 0;
+    margin-bottom: 2rem;
+  }
+}
+
+.cyber-console-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+  max-width: 780px;
+  margin-bottom: 12px;
+}
+
+.cyber-console-header .header-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 235, 59, 0.4), transparent);
+}
+
+.cyber-console-header .header-title {
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.25em;
+  color: var(--brutal-yellow);
+  text-shadow: 0 0 6px rgba(255, 235, 59, 0.3);
+  text-transform: uppercase;
+}
+
+.cyber-console-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 780px;
+}
+
+@media (min-width: 768px) {
+  .cyber-console-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+}
+
+.cyber-console-card {
+  background: rgba(18, 18, 18, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 235, 59, 0.22);
+  border-radius: 4px;
+  padding: 14px 14px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.cyber-console-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 235, 59, 0.03) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.cyber-console-card:hover {
+  border-color: rgba(255, 235, 59, 0.7);
+  box-shadow: 0 6px 20px rgba(255, 235, 59, 0.08), 0 0 10px rgba(255, 235, 59, 0.15);
+  transform: translateY(-2px);
+}
+
+.cyber-console-card:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.console-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.console-card-tag {
+  font-family: 'Courier New', monospace;
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.05em;
+}
+
+.console-card-led {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--neon-orange);
+  transition: all 0.3s ease;
+  box-shadow: 0 0 4px var(--neon-orange);
+}
+
+.cyber-console-card:hover .console-card-led {
+  background: var(--neon-green);
+  box-shadow: 0 0 8px var(--neon-green), 0 0 12px var(--neon-green);
+}
+
+.console-card-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 4px;
+  transition: color 0.3s;
+  text-transform: uppercase;
+}
+
+.cyber-console-card:hover .console-card-title {
+  color: var(--white);
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+}
+
+.console-card-desc {
+  font-family: 'Courier New', monospace;
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.4);
+  line-height: 1.3;
+  transition: color 0.3s;
+}
+
+.cyber-console-card:hover .console-card-desc {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* ── Brutal Popup Modals ── */
+.brutal-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 10, 0.94);
+  display: none;
+  flex-direction: column;
+  z-index: 20000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.brutal-modal.active {
+  display: flex;
+  opacity: 1;
+}
+
+.brutal-modal-dialog {
+  background: var(--c2);
+  border: 4px solid var(--brutal-yellow);
+  box-shadow: 6px 6px 0 var(--brutal-yellow);
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  font-family: 'Courier New', monospace;
+  animation: modalSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes modalSlideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.brutal-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--brutal-yellow);
+  border-bottom: 3px solid #000;
+  color: #000;
+}
+
+.brutal-modal-title {
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.brutal-modal-close {
+  background: transparent;
+  border: none;
+  color: #000;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  font-weight: 900;
+  transition: opacity 0.15s;
+}
+
+.brutal-modal-close:hover {
+  opacity: 0.6;
+}
+
+.brutal-modal-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Inner elements styling */
+.tool-panel-desc {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+/* Drag and Drop Zone */
+.tool-drop-zone {
+  border: 2px dashed rgba(255, 235, 59, 0.4);
+  background: rgba(255, 235, 59, 0.02);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.tool-drop-zone:hover,
+.tool-drop-zone.dragover {
+  border-color: var(--brutal-yellow);
+  background: rgba(255, 235, 59, 0.06);
+}
+
+.drop-zone-icon {
+  font-size: 1.8rem;
+}
+
+.drop-zone-text {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--brutal-yellow);
+  text-transform: uppercase;
+}
+
+.tool-file-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 235, 59, 0.08);
+  border: 1px solid var(--brutal-yellow);
+  padding: 6px 12px;
+  font-size: 0.68rem;
+  color: var(--brutal-yellow);
+}
+
+.file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 80%;
+}
+
+.file-remove-btn {
+  background: none;
+  border: none;
+  color: var(--brutal-yellow);
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.brutal-tool-btn {
+  background: transparent;
+  border: 2px solid var(--brutal-yellow);
+  color: var(--brutal-yellow);
+  padding: 10px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.72rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 rgba(255, 235, 59, 0.2);
+  transition: all 0.15s ease;
+  text-transform: uppercase;
+}
+
+.brutal-tool-btn:hover:not(:disabled) {
+  background: var(--brutal-yellow);
+  color: #000;
+  box-shadow: 4px 4px 0 rgba(255, 235, 59, 0.4);
+  transform: translate(-1px, -1px);
+}
+
+.brutal-tool-btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0 transparent;
+}
+
+.brutal-tool-btn:disabled {
+  border-color: rgba(255, 235, 59, 0.2);
+  color: rgba(255, 235, 59, 0.2);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.tool-status {
+  font-size: 0.62rem;
+  color: var(--neon-green);
+  text-transform: uppercase;
+  margin-top: 4px;
+  min-height: 14px;
+}
+
+.tool-status.error {
+  color: var(--brutal-red);
+}
+
+/* Translator and Crypto Elements */
+.translator-row {
+  width: 100%;
+}
+
+.translator-select {
+  width: 100%;
+  background: #000;
+  border: 2px solid rgba(255, 235, 59, 0.4);
+  color: var(--brutal-yellow);
+  font-family: 'Courier New', monospace;
+  font-size: 0.72rem;
+  padding: 6px;
+  outline: none;
+  cursor: pointer;
+}
+
+.translator-select:focus {
+  border-color: var(--brutal-yellow);
+}
+
+.translator-io {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.brutal-textarea {
+  width: 100%;
+  height: 70px;
+  background: #000;
+  border: 2px solid rgba(255, 235, 59, 0.4);
+  color: #fff;
+  font-family: 'Courier New', monospace;
+  font-size: 0.72rem;
+  padding: 8px;
+  resize: none;
+  outline: none;
+}
+
+.brutal-textarea:focus {
+  border-color: var(--brutal-yellow);
+}
+
+.brutal-textarea.readonly {
+  background: rgba(255, 255, 255, 0.02);
+  color: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 235, 59, 0.15);
+}
+
+/* Background Remover specifics */
+.bgremover-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.tolerance-control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(255, 235, 59, 0.04);
+  border: 1px solid rgba(255, 235, 59, 0.2);
+  padding: 8px 12px;
+}
+
+.tolerance-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.color-picker-indicator-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.selected-color-box {
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--brutal-yellow);
+  box-shadow: 2px 2px 0 rgba(255, 235, 59, 0.2);
+}
+
+.canvas-preview-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: #000;
+  border: 2px solid rgba(255, 235, 59, 0.3);
+  padding: 10px;
+  width: 100%;
+}
+
+#remover-canvas {
+  max-width: 100%;
+  max-height: 180px;
+  height: auto;
+  cursor: crosshair;
+  background-image:
+    linear-gradient(45deg, #111 25%, transparent 25%),
+    linear-gradient(-45deg, #111 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #111 75%),
+    linear-gradient(-45deg, transparent 75%, #111 75%);
+  background-size: 10px 10px;
+  background-position: 0 0, 0 5px, 5px -5px, -5px 0px;
+  border: 1px solid rgba(255, 235, 59, 0.15);
+}
+
+.canvas-hint {
+  font-size: 0.58rem;
+  color: rgba(255, 235, 59, 0.6);
+  font-weight: bold;
 }

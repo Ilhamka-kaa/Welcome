@@ -1487,6 +1487,7 @@ async function initialize() {
   setupGameCardListeners();
   setupCommentsHandler();
   setupBackgroundBridge();
+  setupHeroTools();
   updateUI();
 
   // Pause/resume backgrounds correctly on start (page 1 running, page 2 paused)
@@ -1648,4 +1649,508 @@ function setupBackgroundBridge() {
 
   // Set initial visibility (starts on page 0 = page 1)
   updatePanelVisibility();
+}
+
+/**
+ * Setup Interactive Hero Tools Cards & Modals (Page 1)
+ */
+function setupHeroTools() {
+  const toolCards = document.querySelectorAll('.cyber-console-card');
+  if (toolCards.length === 0) return;
+
+  // Hide custom cursor and show default pointer for forms
+  const disableCustomCursor = () => {
+    const cursorEl = document.getElementById('cur');
+    const cursorRingEl = document.getElementById('cur-ring');
+    if (cursorEl) cursorEl.style.display = 'none';
+    if (cursorRingEl) cursorRingEl.style.display = 'none';
+    document.body.style.cursor = 'auto';
+  };
+
+  const enableCustomCursor = () => {
+    if (!('ontouchstart' in window)) {
+      const cursorEl = document.getElementById('cur');
+      const cursorRingEl = document.getElementById('cur-ring');
+      if (cursorEl) cursorEl.style.display = 'block';
+      if (cursorRingEl) cursorRingEl.style.display = 'block';
+      document.body.style.cursor = 'none';
+    }
+  };
+
+  // Open Tool Modal
+  toolCards.forEach(card => {
+    card.addEventListener('click', () => {
+      const toolType = card.getAttribute('data-tool');
+      const modal = document.getElementById(`modal-${toolType}`);
+      if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        disableCustomCursor();
+      }
+    });
+  });
+
+  // Close Tool Modal
+  const closeModals = () => {
+    const activeModals = document.querySelectorAll('.brutal-modal.active');
+    activeModals.forEach(modal => {
+      modal.classList.remove('active');
+    });
+    document.body.style.overflow = '';
+    enableCustomCursor();
+  };
+
+  // Bind close buttons
+  document.querySelectorAll('.brutal-modal-close').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeModals();
+    });
+  });
+
+  // Close on clicking outside dialog
+  document.querySelectorAll('.brutal-modal').forEach(modal => {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeModals();
+      }
+    });
+  });
+
+  // Close on ESC key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeModals();
+    }
+  });
+
+  // --- PDF to Word Tool ---
+  const pdfZone = document.getElementById('pdf-drop-zone');
+  const pdfInput = document.getElementById('pdf-file-input');
+  const pdfInfo = document.getElementById('pdf-file-info');
+  const pdfFileName = pdfInfo ? pdfInfo.querySelector('.file-name') : null;
+  const pdfRemoveBtn = document.getElementById('pdf-remove-btn');
+  const pdfConvertBtn = document.getElementById('pdf-convert-btn');
+  const pdfStatus = document.getElementById('pdf-status');
+  let selectedPdfFile = null;
+
+  if (window.pdfjsLib) {
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+  }
+
+  if (pdfZone && pdfInput) {
+    pdfZone.addEventListener('click', () => pdfInput.click());
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      pdfZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        pdfZone.classList.add('dragover');
+      }, false);
+    });
+    ['dragleave', 'drop'].forEach(eventName => {
+      pdfZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        pdfZone.classList.remove('dragover');
+      }, false);
+    });
+
+    pdfZone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      if (files.length > 0 && files[0].type === 'application/pdf') {
+        handlePdfFileSelection(files[0]);
+      } else {
+        showPdfStatus('Error: Harap unggah file PDF yang valid.', true);
+      }
+    });
+
+    pdfInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        handlePdfFileSelection(e.target.files[0]);
+      }
+    });
+  }
+
+  function handlePdfFileSelection(file) {
+    selectedPdfFile = file;
+    if (pdfFileName) pdfFileName.textContent = file.name;
+    if (pdfInfo) pdfInfo.style.display = 'flex';
+    if (pdfZone) pdfZone.style.display = 'none';
+    if (pdfConvertBtn) pdfConvertBtn.removeAttribute('disabled');
+    showPdfStatus('');
+  }
+
+  if (pdfRemoveBtn) {
+    pdfRemoveBtn.addEventListener('click', () => {
+      selectedPdfFile = null;
+      pdfInput.value = '';
+      if (pdfInfo) pdfInfo.style.display = 'none';
+      if (pdfZone) pdfZone.style.display = 'flex';
+      if (pdfConvertBtn) pdfConvertBtn.setAttribute('disabled', 'true');
+      showPdfStatus('');
+    });
+  }
+
+  function showPdfStatus(msg, isError = false) {
+    if (!pdfStatus) return;
+    pdfStatus.textContent = msg;
+    pdfStatus.className = isError ? 'tool-status error' : 'tool-status';
+  }
+
+  if (pdfConvertBtn) {
+    pdfConvertBtn.addEventListener('click', async () => {
+      if (!selectedPdfFile) return;
+
+      if (!window.pdfjsLib) {
+        showPdfStatus('Error: Library PDF.js gagal dimuat.', true);
+        return;
+      }
+
+      try {
+        showPdfStatus('Membaca PDF... Silakan tunggu...');
+        pdfConvertBtn.setAttribute('disabled', 'true');
+
+        const fileReader = new FileReader();
+        fileReader.onload = async function() {
+          try {
+            const typedarray = new Uint8Array(this.result);
+            const pdf = await window.pdfjsLib.getDocument(typedarray).promise;
+            let text = '';
+            
+            showPdfStatus(`Mengekstrak teks (0/${pdf.numPages} halaman)...`);
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+              showPdfStatus(`Mengekstrak teks (${i}/${pdf.numPages} halaman)...`);
+              const page = await pdf.getPage(i);
+              const textContent = await page.getTextContent();
+              const pageText = textContent.items.map(item => item.str).join(' ');
+              text += pageText + '\n\n';
+            }
+
+            if (!text.trim()) {
+              showPdfStatus('PDF ini tidak mengandung teks teks yang bisa diekstrak.', true);
+              pdfConvertBtn.removeAttribute('disabled');
+              return;
+            }
+
+            showPdfStatus('Mengonversi ke format Word...');
+
+            const docContent = `
+              <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+              <head>
+                <title>Converted Document</title>
+                <!--[if gte mso 9]>
+                <xml>
+                  <w:WordDocument>
+                    <w:View>Print</w:View>
+                    <w:Zoom>90</w:Zoom>
+                  </w:WordDocument>
+                </xml>
+                <![endif]-->
+                <style>
+                  p { font-family: Arial, sans-serif; line-height: 1.6; font-size: 11pt; margin-bottom: 12pt; }
+                </style>
+              </head>
+              <body>
+                ` + text.split('\n\n').map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('') + `
+              </body>
+              </html>
+            `;
+
+            const blob = new Blob([docContent], { type: 'application/msword' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = selectedPdfFile.name.replace(/\.pdf$/i, '') + '_converted.doc';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showPdfStatus('Konversi berhasil! File Word diunduh.');
+            pdfConvertBtn.removeAttribute('disabled');
+          } catch (err) {
+            console.error(err);
+            showPdfStatus('Gagal membaca halaman PDF.', true);
+            pdfConvertBtn.removeAttribute('disabled');
+          }
+        };
+        fileReader.readAsArrayBuffer(selectedPdfFile);
+      } catch (e) {
+        console.error(e);
+        showPdfStatus('Gagal memproses file PDF.', true);
+        pdfConvertBtn.removeAttribute('disabled');
+      }
+    });
+  }
+
+  // --- Translator Tool ---
+  const transLang = document.getElementById('trans-lang');
+  const transInput = document.getElementById('trans-input');
+  const transOutput = document.getElementById('trans-output');
+  const transBtn = document.getElementById('trans-btn');
+  const transStatus = document.getElementById('trans-status');
+
+  function showTransStatus(msg, isError = false) {
+    if (!transStatus) return;
+    transStatus.textContent = msg;
+    transStatus.className = isError ? 'tool-status error' : 'tool-status';
+  }
+
+  function getWordCount(text) {
+    return text.trim() ? text.trim().split(/\s+/).filter(Boolean).length : 0;
+  }
+
+  if (transInput) {
+    transInput.addEventListener('input', () => {
+      const text = transInput.value;
+      const count = getWordCount(text);
+      if (count > 100) {
+        showTransStatus(`Peringatan: Melebihi batas 100 kata (${count}/100 kata).`, true);
+        if (transBtn) transBtn.setAttribute('disabled', 'true');
+      } else if (count > 0) {
+        showTransStatus(`${count}/100 kata terinput.`);
+        if (transBtn) transBtn.removeAttribute('disabled');
+      } else {
+        showTransStatus('');
+        if (transBtn) transBtn.removeAttribute('disabled');
+      }
+    });
+  }
+
+  if (transBtn) {
+    transBtn.addEventListener('click', async () => {
+      const text = transInput.value.trim();
+      if (!text) {
+        showTransStatus('Masukkan teks terlebih dahulu.', true);
+        return;
+      }
+
+      const wordCount = getWordCount(text);
+      if (wordCount > 100) {
+        showTransStatus(`Gagal: Melebihi batas maksimal 100 kata. (Terinput: ${wordCount} kata)`, true);
+        return;
+      }
+
+      try {
+        showTransStatus('Menerjemahkan...');
+        transBtn.setAttribute('disabled', 'true');
+        
+        const langpair = transLang.value;
+        const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${langpair}`;
+
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('API response error');
+        
+        const data = await res.json();
+        if (data.responseData && data.responseData.translatedText) {
+          transOutput.value = data.responseData.translatedText;
+          showTransStatus('Penerjemahan berhasil.');
+        } else {
+          throw new Error('No translation returned');
+        }
+      } catch (e) {
+        console.error(e);
+        showTransStatus('Gagal melakukan terjemahan. Coba lagi nanti.', true);
+      } finally {
+        const count = getWordCount(transInput.value);
+        if (count <= 100) {
+          transBtn.removeAttribute('disabled');
+        }
+      }
+    });
+  }
+
+  // --- Background Remover Tool ---
+  const imgZone = document.getElementById('img-drop-zone');
+  const imgInput = document.getElementById('img-file-input');
+  const bgControls = document.getElementById('bg-controls-group');
+  const canvasWrap = document.getElementById('img-canvas-wrap');
+  const canvas = document.getElementById('remover-canvas');
+  const toleranceInput = document.getElementById('bg-tolerance');
+  const toleranceVal = document.getElementById('bg-tolerance-val');
+  const colorBox = document.getElementById('selected-color-box');
+  const downloadBtn = document.getElementById('img-download-btn');
+  const imgStatus = document.getElementById('img-status');
+
+  let originalImage = null;
+  let pickedColor = null;
+
+  if (imgZone && imgInput) {
+    imgZone.addEventListener('click', () => imgInput.click());
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      imgZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        imgZone.classList.add('dragover');
+      }, false);
+    });
+    ['dragleave', 'drop'].forEach(eventName => {
+      imgZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        imgZone.classList.remove('dragover');
+      }, false);
+    });
+
+    imgZone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      if (files.length > 0 && files[0].type.startsWith('image/')) {
+        handleImageSelection(files[0]);
+      } else {
+        showImgStatus('Error: Harap unggah gambar yang valid.', true);
+      }
+    });
+
+    imgInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        handleImageSelection(e.target.files[0]);
+      }
+    });
+  }
+
+  function showImgStatus(msg, isError = false) {
+    if (!imgStatus) return;
+    imgStatus.textContent = msg;
+    imgStatus.className = isError ? 'tool-status error' : 'tool-status';
+  }
+
+  function handleImageSelection(file) {
+    showImgStatus('');
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      originalImage = new Image();
+      originalImage.onload = function() {
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        canvas.width = originalImage.width;
+        canvas.height = originalImage.height;
+        ctx.drawImage(originalImage, 0, 0);
+        
+        if (imgZone) imgZone.style.display = 'none';
+        if (bgControls) bgControls.style.display = 'flex';
+        if (canvasWrap) canvasWrap.style.display = 'flex';
+        if (downloadBtn) downloadBtn.removeAttribute('disabled');
+        pickedColor = null;
+        if (colorBox) colorBox.style.backgroundColor = 'transparent';
+        showImgStatus('Gambar dimuat. Klik warna pada gambar untuk menghapusnya.');
+      };
+      originalImage.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  if (canvas) {
+    canvas.addEventListener('click', (e) => {
+      if (!originalImage) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top) * scaleY;
+
+      const ctx = canvas.getContext('2d');
+      const imgData = ctx.getImageData(x, y, 1, 1).data;
+      pickedColor = { r: imgData[0], g: imgData[1], b: imgData[2] };
+
+      if (colorBox) colorBox.style.backgroundColor = `rgb(${pickedColor.r}, ${pickedColor.g}, ${pickedColor.b})`;
+      processImageBackgroundRemoval();
+    });
+  }
+
+  if (toleranceInput) {
+    toleranceInput.addEventListener('input', (e) => {
+      if (toleranceVal) toleranceVal.textContent = e.target.value;
+      if (pickedColor) {
+        processImageBackgroundRemoval();
+      }
+    });
+  }
+
+  function processImageBackgroundRemoval() {
+    if (!originalImage || !pickedColor || !canvas) return;
+
+    const tolerance = parseInt(toleranceInput.value);
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(originalImage, 0, 0);
+    
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imgData.data;
+
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+
+      const diff = Math.sqrt(
+        Math.pow(r - pickedColor.r, 2) +
+        Math.pow(g - pickedColor.g, 2) +
+        Math.pow(b - pickedColor.b, 2)
+      );
+
+      const percentageDiff = (diff / 441.67) * 100;
+
+      if (percentageDiff <= tolerance) {
+        data[i + 3] = 0;
+      }
+    }
+
+    ctx.putImageData(imgData, 0, 0);
+    showImgStatus('Latar belakang berhasil dihapus.');
+  }
+
+  if (downloadBtn) {
+    downloadBtn.addEventListener('click', () => {
+      if (!originalImage || !canvas) return;
+      
+      const url = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'bg_removed_' + Date.now() + '.png';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showImgStatus('Gambar transparan berhasil diunduh.');
+    });
+  }
+
+  // --- Developer Tools (Hash & Base64) ---
+  const cryptoAction = document.getElementById('crypto-action');
+  const cryptoInput = document.getElementById('crypto-input');
+  const cryptoOutput = document.getElementById('crypto-output');
+  const cryptoBtn = document.getElementById('crypto-btn');
+
+  if (cryptoBtn) {
+    cryptoBtn.addEventListener('click', async () => {
+      if (!cryptoInput || !cryptoAction || !cryptoOutput) return;
+      const text = cryptoInput.value;
+      const action = cryptoAction.value;
+
+      if (action === 'base64-encode') {
+        try {
+          cryptoOutput.value = btoa(unescape(encodeURIComponent(text)));
+        } catch (e) {
+          cryptoOutput.value = 'Error: Karakter tidak valid untuk pengodean Base64.';
+        }
+      } else if (action === 'base64-decode') {
+        try {
+          cryptoOutput.value = decodeURIComponent(escape(atob(text.trim())));
+        } catch (e) {
+          cryptoOutput.value = 'Error: Format Base64 tidak valid.';
+        }
+      } else if (action === 'sha256') {
+        cryptoOutput.value = 'Menghitung...';
+        const hash = await sha256(text);
+        cryptoOutput.value = hash;
+      }
+    });
+  }
+
+  async function sha256(message) {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
 }
