@@ -96,6 +96,8 @@ function transitionToPage(toIdx, direction) {
   const fromPage = pages[state.current];
   const toPage = pages[toIdx];
 
+
+
   // Resume target background early
   handleBackgroundTransitionStart(state.current, toIdx);
 
@@ -159,6 +161,8 @@ function finalizeTransition(toIdx) {
 
   revealPage(state.current);
   updateUI();
+
+
 
   // Control background animation pause/resume states on transition completion
   handleBackgroundTransitionComplete(toIdx);
@@ -277,6 +281,8 @@ function updateDragPageTransforms(progress) {
   fromPage.style.transform = `translateX(0) scale(${outScale})`;
   fromPage.style.opacity = String(outOpacity);
   fromPage.querySelector('.page-dimmer').style.background = `rgba(0,0,0,${p * 0.28})`;
+
+
 }
 
 /**
@@ -317,6 +323,8 @@ function commitDragTransition() {
   fromPage.querySelector('.page-dimmer').style.transition = transitionCSS;
   fromPage.querySelector('.page-dimmer').style.background = 'rgba(0,0,0,.28)';
 
+
+
   state.drag = null;
   state.animating = true;
 
@@ -353,6 +361,8 @@ function snapBackFromDrag() {
   fromPage.querySelector('.page-dimmer').style.transition = 'background 0.4s';
   fromPage.querySelector('.page-dimmer').style.background = 'rgba(0,0,0,0)';
 
+
+
   state.drag = null;
 
   setTimeout(() => {
@@ -374,6 +384,8 @@ function resetPagesToFinalState() {
     p.querySelector('.page-dimmer').style.background = '';
     p.querySelector('.page-dimmer').style.transition = '';
   });
+
+
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -460,11 +472,18 @@ function updateDragZones() {
   const isFirstPage = state.current === 0;
   const isLastPage = state.current === CONFIG.TOTAL_PAGES - 1;
 
+  const apLeft = document.getElementById('ap-left');
+  const apRight = document.getElementById('ap-right');
+
   dragZoneLeft.style.opacity = isFirstPage ? '0' : '1';
-  dragZoneLeft.style.pointerEvents = isFirstPage ? 'none' : 'auto';
+  if (apLeft) {
+    apLeft.style.pointerEvents = isFirstPage ? 'none' : 'auto';
+  }
 
   dragZoneRight.style.opacity = isLastPage ? '0' : '1';
-  dragZoneRight.style.pointerEvents = isLastPage ? 'none' : 'auto';
+  if (apRight) {
+    apRight.style.pointerEvents = isLastPage ? 'none' : 'auto';
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1529,15 +1548,9 @@ function handleBackgroundTransitionComplete(currentIdx) {
  * Update background settings panel visibility based on active page
  */
 function updatePanelVisibility() {
-  const wrap = document.getElementById('bg-panel-wrap');
   const panel = document.getElementById('bgPanel');
-  if (!wrap) return;
-
-  if (state.current === 0) {
-    wrap.classList.add('bg-panel-visible');
-  } else {
-    wrap.classList.remove('bg-panel-visible');
-    if (panel) panel.classList.remove('open');
+  if (state.current !== 0 && panel) {
+    panel.classList.remove('open');
   }
 }
 
